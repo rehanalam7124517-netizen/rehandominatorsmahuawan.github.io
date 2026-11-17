@@ -24,27 +24,27 @@ html[data-rdm-theme="light"] {
   --text-muted: #5F7385;
   --letter-comp: 0em;
 
-  /* 10% Championship Emerald & Burnished Gold Accent Budget */
-  --accent: #0E6347;
-  --accent-hover: #0A4D37;
+  /* 10% Crimson Red & Metallic Gold Accent Budget (matched to RDM emblem) */
+  --accent: #C81E2B;
+  --accent-hover: #A31621;
   --accent-ink: #FFFFFF;
-  --accent-soft: rgba(14, 99, 71, 0.10);
+  --accent-soft: rgba(200, 30, 43, 0.10);
 
-  --gold: #9E6F16;
-  --gold-soft: rgba(158, 111, 22, 0.11);
+  --gold: #B45309;
+  --gold-soft: rgba(180, 83, 9, 0.11);
 
-  --danger: #B42334;
-  --danger-soft: rgba(180, 35, 52, 0.09);
-  --danger-border: rgba(180, 35, 52, 0.25);
+  --danger: #B91C1C;
+  --danger-soft: rgba(185, 28, 28, 0.09);
+  --danger-border: rgba(185, 28, 28, 0.25);
 
-  --success: #0E7A4D;
-  --success-soft: rgba(14, 122, 77, 0.10);
+  --success: #0F766E;
+  --success-soft: rgba(15, 118, 110, 0.10);
 
-  --header-bg: rgba(255, 255, 255, 0.90);
+  --header-bg: rgba(255, 255, 255, 0.92);
   --nav-bg: rgba(244, 246, 248, 0.94);
 
-  --shadow-card: 0 1px 2px rgba(13, 27, 38, 0.04), 0 8px 24px rgba(13, 27, 38, 0.05);
-  --shadow-modal: 0 24px 64px rgba(13, 27, 38, 0.20);
+  --shadow-card: 0 1px 2px rgba(13, 17, 23, 0.04), 0 8px 24px rgba(13, 17, 23, 0.06);
+  --shadow-modal: 0 24px 64px rgba(13, 17, 23, 0.22);
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 22px;
@@ -52,25 +52,25 @@ html[data-rdm-theme="light"] {
 }
 
 html[data-rdm-theme="dark"] {
-  --bg: #080D12;
-  --surface: #101720;
-  --surface-subtle: #16202B;
-  --surface-hover: #1C2937;
-  --border: rgba(220, 232, 245, 0.10);
-  --border-strong: rgba(220, 232, 245, 0.20);
+  --bg: #08090C;
+  --surface: #111318;
+  --surface-subtle: #181B22;
+  --surface-hover: #212530;
+  --border: rgba(236, 240, 246, 0.10);
+  --border-strong: rgba(236, 240, 246, 0.20);
 
-  --text: #F1F5F9;
-  --text-secondary: #B4C3D2;
-  --text-muted: #8296A8;
+  --text: #F3F4F6;
+  --text-secondary: #C2C8D4;
+  --text-muted: #8E98A8;
   --letter-comp: 0.01em;
 
-  --accent: #20C087;
-  --accent-hover: #19A473;
-  --accent-ink: #04150E;
-  --accent-soft: rgba(32, 192, 135, 0.14);
+  --accent: #EF4444;
+  --accent-hover: #DC2626;
+  --accent-ink: #FFFFFF;
+  --accent-soft: rgba(239, 68, 68, 0.15);
 
-  --gold: #E2B857;
-  --gold-soft: rgba(226, 184, 87, 0.14);
+  --gold: #F59E0B;
+  --gold-soft: rgba(245, 158, 11, 0.14);
 
   --danger: #F87171;
   --danger-soft: rgba(248, 113, 113, 0.14);
@@ -79,11 +79,11 @@ html[data-rdm-theme="dark"] {
   --success: #34D399;
   --success-soft: rgba(52, 211, 153, 0.14);
 
-  --header-bg: rgba(8, 13, 18, 0.90);
-  --nav-bg: rgba(12, 19, 27, 0.94);
+  --header-bg: rgba(8, 9, 12, 0.92);
+  --nav-bg: rgba(13, 15, 20, 0.94);
 
-  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.24), 0 12px 32px rgba(0, 0, 0, 0.26);
-  --shadow-modal: 0 28px 80px rgba(0, 0, 0, 0.65);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.28), 0 12px 32px rgba(0, 0, 0, 0.30);
+  --shadow-modal: 0 28px 80px rgba(0, 0, 0, 0.68);
 }
 
 *,
@@ -162,14 +162,14 @@ img {
 }
 
 .brand img {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 2px;
-  border: 1px solid var(--border-strong);
-  background: #9B9B9B;
+  border: 1.5px solid var(--accent);
+  background: #9E9E9E;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
   flex-shrink: 0;
 }
 
@@ -562,15 +562,17 @@ body.admin .adminOnly {
 
 .hero {
   position: relative;
-  min-height: 460px;
+  min-height: 480px;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: #0B141A;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: #0B0D12;
   display: flex;
   align-items: center;
-  padding: clamp(28px, 5vw, 60px);
-  box-shadow: var(--shadow-card);
+  justify-content: center;
+  text-align: center;
+  padding: clamp(38px, 6.5vw, 76px) clamp(20px, 5vw, 48px);
+  box-shadow: 0 20px 54px rgba(6, 7, 10, 0.36);
 }
 
 .heroBackdrop {
@@ -591,65 +593,88 @@ body.admin .adminOnly {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(
-    105deg,
-    rgba(6, 12, 16, 0.94) 0%,
-    rgba(6, 12, 16, 0.80) 52%,
-    rgba(6, 12, 16, 0.48) 100%
+  background: radial-gradient(
+    ellipse at center,
+    rgba(24, 16, 18, 0.70) 0%,
+    rgba(11, 13, 18, 0.88) 62%,
+    rgba(8, 9, 12, 0.97) 100%
   );
 }
 
 .heroInner {
   position: relative;
   z-index: 2;
-  max-width: 680px;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.heroInner > * {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
 }
 
 .heroLogo {
-  width: 96px;
-  height: 96px;
+  width: 132px;
+  height: 132px;
   border-radius: 50%;
-  padding: 3px;
-  background: linear-gradient(135deg, #E2B857, #20C087);
-  margin-bottom: 18px;
+  overflow: hidden;
+  padding: 0;
+  border: 3px solid rgba(239, 68, 68, 0.88);
+  background: #9E9E9E;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 0 4px rgba(255, 255, 255, 0.08);
+  margin: 0 auto 22px;
 }
 
 .heroLogo img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 3px;
   display: block;
-  background: #9B9B9B;
+  background: #9E9E9E;
 }
 
 .hero .eyebrow {
-  margin: 0 0 8px;
+  width: 100%;
+  margin: 0 0 10px;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #E2B857;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FCA5A5;
+  text-align: center;
 }
 
 .heroTeam {
+  width: 100%;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.38rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #D2DCE5;
-  margin-bottom: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #E5E7EB;
+  margin-bottom: 8px;
+  text-align: center;
 }
 
 .hero h1 {
+  width: 100%;
   margin: 0 0 14px;
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5.5vw, 4.35rem);
+  font-size: clamp(2.4rem, 5.4vw, 4.3rem);
   font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.01em;
+  line-height: 1.02;
+  letter-spacing: 0.015em;
   color: #FFFFFF;
+  text-align: center;
   text-wrap: balance;
 }
 
@@ -657,22 +682,30 @@ body.admin .adminOnly {
 .hero h1 em {
   display: block;
   font-style: normal;
+  text-align: center;
 }
 
 .hero h1 em {
-  color: #34D399;
+  color: #EF4444;
+  margin-top: 4px;
 }
 
 .heroMotto {
+  width: 100%;
   margin: 0;
   font-size: 15px;
   font-weight: 500;
-  color: #C7D4DF;
+  letter-spacing: 0.02em;
+  color: #D1D5DB;
+  text-align: center;
 }
 
 .actions.homeActions {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 12px;
   margin-top: 26px;
 }
@@ -704,12 +737,14 @@ body.admin .adminOnly {
   padding: 20px 22px;
   box-shadow: var(--shadow-card);
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: 4px;
 }
 
 .metrics strong {
   font-family: var(--font-display);
-  font-size: 2.15rem;
+  font-size: 2.25rem;
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -729,6 +764,7 @@ body.admin .adminOnly {
 
 .leadTitle {
   margin-bottom: 18px;
+  text-align: center;
 }
 
 .leadGrid {
@@ -824,6 +860,8 @@ body.admin .adminOnly {
   padding: 20px 22px;
   box-shadow: var(--shadow-card);
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: 6px;
 }
 
@@ -852,6 +890,7 @@ body.admin .adminOnly {
 .countdownTimer {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin-top: 8px;
 }
@@ -920,6 +959,8 @@ body.admin .adminOnly {
 
 .homeUpdateHub {
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: 8px;
 }
 
@@ -977,11 +1018,13 @@ body.admin .adminOnly {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 26px;
+  padding: 28px;
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .rdmSeoIntro h2 {
@@ -995,6 +1038,7 @@ body.admin .adminOnly {
 
 .rdmSeoIntro p {
   margin: 0 0 10px;
+  max-width: 62ch;
   font-size: 14px;
   line-height: 1.65;
   color: var(--text-secondary);
@@ -1165,23 +1209,24 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .players {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
 }
 
 .player {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 22px 20px;
+  padding: 20px 26px;
   box-shadow: var(--shadow-card);
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
   align-items: center;
-  text-align: center;
+  gap: 14px 24px;
+  text-align: left;
   position: relative;
-  transition: transform 180ms var(--ease), border-color 180ms var(--ease);
+  transition: transform 180ms var(--ease), border-color 180ms var(--ease), box-shadow 180ms var(--ease);
 }
 
 .clickablePlayer {
@@ -1190,19 +1235,20 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .player:hover {
   transform: translateY(-2px);
-  border-color: var(--border-strong);
+  border-color: var(--gold);
+  box-shadow: 0 10px 28px rgba(10, 30, 22, 0.12);
 }
 
 .player .photo,
 .squadFullProfile .photo {
-  width: 112px;
-  height: 112px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--border);
-  background: var(--surface-subtle);
-  flex: 0 0 112px;
-  margin: 0 auto 14px;
+  border: 2px solid var(--gold);
+  background: #0F241C;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  margin: 0;
 }
 
 .player .photo img,
@@ -1217,9 +1263,10 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .leadershipBadge {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 .leadershipBadge.vice,
@@ -1229,10 +1276,12 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .pbody {
   width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  text-align: left;
+  gap: 4px;
 }
 
 .simplePlayerId,
@@ -1253,15 +1302,15 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .pbody h3 {
   margin: 2px 0 0;
   font-family: var(--font-display);
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   color: var(--text);
 }
 
 .captainBadge {
-  display: block;
-  margin-top: 4px;
+  display: inline-block;
+  margin-left: 8px;
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 700;
@@ -1277,9 +1326,15 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .pbody p {
   margin: 2px 0;
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.55;
   color: var(--text-secondary);
+}
+
+.squadNick {
+  color: var(--gold) !important;
+  font-weight: 600;
+  font-size: 12.5px !important;
 }
 
 .viewProfileBtn {
@@ -1289,7 +1344,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 /* Squad Full Profile & Expandable Stats Panel */
 .squadFullProfile {
-  text-align: center;
+  text-align: left;
   transition: transform 180ms var(--ease), border-color 180ms var(--ease), box-shadow 180ms var(--ease);
 }
 
@@ -1299,42 +1354,52 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .squadEditFab {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid var(--border);
   background: var(--surface-subtle);
   color: var(--text);
   cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 
 .squadIdentity {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin: 8px 0 4px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0 0 2px;
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-muted);
+}
+
+.squadFullProfile .profileBio {
+  max-width: 68ch;
+  margin: 6px 0 0;
+  text-align: left;
+  font-size: 13.5px;
 }
 
 .squadSocials {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
   width: 100%;
-  margin: 10px 0 2px;
+  margin: 8px 0 0;
 }
 
 .squadSocials a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 6px 14px;
+  min-height: 34px;
+  padding: 5px 12px;
   border-radius: var(--radius-sm);
   background: var(--surface-subtle);
   color: var(--text);
@@ -1360,9 +1425,10 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 }
 
 .squadStats {
+  grid-column: 1 / -1;
   width: 100%;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
   text-align: left;
 }
@@ -1390,7 +1456,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .squadStatsGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -1422,7 +1488,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .squadStatLines {
   margin-top: 10px;
-  text-align: center;
+  text-align: left;
 }
 
 .squadStatLines p {
@@ -1433,12 +1499,11 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .squadCardActions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: center;
-  align-items: center;
   gap: 8px;
-  margin-top: 12px;
-  width: 100%;
+  min-width: 152px;
 }
 
 .squadShareBtn {
@@ -1446,7 +1511,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   color: var(--text);
   border: 1px solid var(--border-strong);
   min-height: 40px;
-  padding: 8px 18px;
+  padding: 8px 16px;
 }
 
 .squadShareBtn:hover {
@@ -2186,12 +2251,12 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .downloadAppCard > img {
   width: 140px;
   height: 140px;
-  border-radius: 24px;
-  object-fit: contain;
+  border-radius: 26px;
+  object-fit: cover;
   object-position: center;
-  padding: 4px;
-  background: #9B9B9B;
-  border: 1px solid var(--border);
+  background: #9E9E9E;
+  border: 2px solid var(--accent);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
 }
 
 .downloadBadge {
@@ -2539,10 +2604,10 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  object-fit: contain;
-  background: #9B9B9B;
-  border: 1px solid var(--border-strong);
-  padding: 4px;
+  object-fit: cover;
+  object-position: center;
+  background: #9E9E9E;
+  border: 1.5px solid var(--accent);
   flex-shrink: 0;
 }
 
@@ -2627,6 +2692,139 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .adminSessionBar span {
   font-size: 13px;
   color: var(--text-muted);
+}
+
+/* Admin Private Access Links */
+.adminLinksBox {
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+.accessLinkList {
+  display: grid;
+  gap: 10px;
+}
+
+.accessLinkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+}
+
+.accessLinkRowHighlight {
+  border-color: var(--gold);
+  background: var(--surface);
+}
+
+.accessLinkMeta {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.accessLinkMeta strong {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.accessLinkMeta small {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.accessLinkMeta input {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.accessLinkBtns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* PWA Install Fallback Guide & Match Poster Modal */
+.installGuideHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.installGuideHead img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  object-fit: cover;
+  object-position: center;
+  border: 1.5px solid var(--accent);
+  background: #9E9E9E;
+  flex-shrink: 0;
+}
+
+.installGuideHead h2 {
+  margin: 0;
+  padding-right: 0;
+}
+
+.installGuideSteps {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.installGuideSteps > div {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  color: var(--text-secondary);
+}
+
+.matchPosterCard {
+  text-align: center;
+  padding: 28px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gold);
+  background: radial-gradient(ellipse at top, rgba(32, 192, 135, 0.14), transparent 70%), var(--surface-subtle);
+}
+
+.matchPosterCard h2 {
+  padding-right: 0;
+  margin: 6px 0 8px;
+}
+
+.matchPosterCard .posterScore {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 12px 0;
+}
+
+.matchPosterCard small {
+  display: block;
+  margin-top: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gold);
 }
 
 .authLoginDialog {
@@ -3068,14 +3266,13 @@ footer {
 }
 
 footer img {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  padding: 2px;
-  background: #9B9B9B;
-  border: 1px solid var(--border);
+  background: #9E9E9E;
+  border: 1.5px solid var(--accent);
 }
 
 footer b {
@@ -3089,7 +3286,6 @@ footer b {
    ========================================================================== */
 
 @media (max-width: 900px) {
-  .players,
   .honours,
   .socialGrid,
   .gallery,
@@ -3106,6 +3302,50 @@ footer b {
   }
 
   .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .player,
+  .player.squadFullProfile {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    padding: 20px 18px;
+    gap: 12px;
+  }
+
+  .player .photo,
+  .squadFullProfile .photo {
+    margin: 0 auto 2px;
+  }
+
+  .pbody {
+    align-items: center;
+    text-align: center;
+  }
+
+  .squadIdentity,
+  .squadSocials {
+    justify-content: center;
+  }
+
+  .squadFullProfile .profileBio,
+  .squadStatLines {
+    text-align: center;
+  }
+
+  .squadCardActions {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  .squadStatsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

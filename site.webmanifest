@@ -3,27 +3,33 @@
   "name": "Rehan Dominators Mahuawan",
   "short_name": "RDM",
   "description": "Official Rehan Dominators Mahuawan cricket team app.",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#080D12",
-  "theme_color": "#0E6347",
+  "background_color": "#090A0D",
+  "theme_color": "#C81E2B",
   "categories": [
     "sports"
   ],
   "icons": [
     {
-      "src": "/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png",
+      "src": "/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png",
+      "src": "/pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

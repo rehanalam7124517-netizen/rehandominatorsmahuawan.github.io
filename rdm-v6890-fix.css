@@ -1,4 +1,5 @@
 /* RDM Squad & Install Polish — aligned with design tokens */
+#players { grid-template-columns: minmax(0, 1fr) !important; }
 #players .player { min-width: 0; overflow: hidden; }
 #players .pbody { min-width: 0; }
 #players .pbody h3 { overflow-wrap: anywhere; word-break: normal; }

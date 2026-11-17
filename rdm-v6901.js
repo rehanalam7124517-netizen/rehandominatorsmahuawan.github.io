@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 function miniSafe(s){try{return typeof mini==='function'?mini(s||''):(s||'')}catch(_){return s||''}}
-function logoLike(src){src=String(src||'').trim();return !src||/(?:^|\/)assets\/(?:logo\.jpg|favicon-(?:48|192|512)\.png|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+)(?:[?#].*)?$/i.test(src)}
+function logoLike(src){src=String(src||'').trim();return !src||/(?:^|\/)(?:assets\/(?:logo\.jpg|rdm-logo\.png|favicon-(?:48|192|512)\.png|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+)|src\/assets\/images\/rdm_(?:crest_emblem|official_crest)_[^?#]+|pwa-(?:192x192|512x512|maskable-512x512)\.png|apple-touch-icon\.png)(?:[?#].*)?$/i.test(src)}
 function initials(name){return String(name||'RDM').trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()}
 function playerByName(name){return window.D&&Array.isArray(D.players)?D.players.find(p=>String(p.name||'').trim().toUpperCase()===name):null}
 function squadImage(name){const cards=[...document.querySelectorAll('#players .player')];const card=cards.find(c=>String(c.querySelector('h3')?.textContent||'').toUpperCase().includes(name.split(' ')[0]));const src=card?.querySelector('.photo img')?.getAttribute('src')||'';return logoLike(src)?'':src}

@@ -1,4 +1,4 @@
-/* RDM V6.9.00 — reliable live leadership sync */
+/* RDM V7.0.0 — reliable live leadership sync */
 (function(){
   'use strict';
   function m(s){try{return typeof mini==='function'?mini(s||''):(s||'')}catch(e){return s||''}}
@@ -7,8 +7,8 @@
     src=String(src||'').trim();
     if(!src)return '';
     /* Never show the team logo as a Captain/VC profile photo. */
-    if(/(?:^|\/)assets\/(?:logo\.jpg|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+)(?:[?#].*)?$/i.test(src))return '';
-    if(/(?:^|\/)assets\/favicon-(?:48|192|512)\.png(?:[?#].*)?$/i.test(src))return '';
+    if(/(?:^|\/)assets\/(?:logo\.jpg|rdm-logo\.png|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+|images\/rdm_(?:crest_emblem|official_crest)_[^?#]+)(?:[?#].*)?$/i.test(src))return '';
+    if(/(?:^|\/)(?:pwa-(?:192x192|512x512|maskable-512x512)|apple-touch-icon|assets\/favicon-(?:48|192|512))\.png(?:[?#].*)?$/i.test(src))return '';
     return src;
   }
   function initials(name){return String(name||'RDM').split(/\s+/).filter(Boolean).slice(0,2).map(function(x){return x[0]}).join('').toUpperCase()}
@@ -30,13 +30,4 @@
   var old=window.render;
   if(typeof old==='function')window.render=function(){var r=old.apply(this,arguments);queueMicrotask(sync);return r};
   document.addEventListener('DOMContentLoaded',function(){sync();[250,700,1500,3000,6000].forEach(function(t){setTimeout(sync,t)})});
-  document.addEventListener('click',async function(e){
-    var b=e.target.closest&&e.target.closest('#downloadApplicationBtn');if(!b)return;
-    var h=document.getElementById('downloadApplicationHelp');
-    if(matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true){if(h)h.textContent='ʀᴅᴍ ᴀᴘᴘ ɪꜱ ᴀʟʀᴇᴀᴅʏ ɪɴꜱᴛᴀʟʟᴇᴅ';return}
-    if(typeof window.rdmPromptInstall==='function'){
-      var outcome=await window.rdmPromptInstall();
-      if(h)h.textContent=outcome==='accepted'?'ɪɴꜱᴛᴀʟʟɪɴɢ ʀᴅᴍ ᴀᴘᴘ…':'ᴄʜʀᴏᴍᴇ ᴍᴇɴᴜ → ɪɴꜱᴛᴀʟʟ ᴀᴘᴘ / ᴀᴅᴅ ᴛᴏ ʜᴏᴍᴇ ꜱᴄʀᴇᴇɴ';
-    }else if(h)h.textContent='ᴄʜʀᴏᴍᴇ ᴍᴇɴᴜ → ɪɴꜱᴛᴀʟʟ ᴀᴘᴘ / ᴀᴅᴅ ᴛᴏ ʜᴏᴍᴇ ꜱᴄʀᴇᴇɴ';
-  });
 })();

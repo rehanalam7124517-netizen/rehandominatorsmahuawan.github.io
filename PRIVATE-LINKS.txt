@@ -22,4 +22,4 @@ SABRE ALAM [SBA]: https://rehandominatorsmahuawan.github.io/?key=wKTMjxcXSV3sweG
 ZISHAN [ZSN]: https://rehandominatorsmahuawan.github.io/?key=FYnhheOTlpei4tJD6C43Qc66
 JAVED [JVD]: https://rehandominatorsmahuawan.github.io/?key=YvKJ8KIvznZlq_7OQc9AYyvG
 
-NOTE: These links open the correct private view. Firebase Authentication and Firestore rules remain the actual write-security layer; the URL token itself is not treated as a password.
+NOTE: Login has been removed. Each link directly opens that player's Profile portal or Admin Panel without password or sign-in. Keep Admin and player private keys confidential.
