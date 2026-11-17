@@ -7,7 +7,7 @@
     src=String(src||'').trim();
     if(!src)return '';
     /* Never show the team logo as a Captain/VC profile photo. */
-    if(/(?:^|\/)assets\/logo\.jpg(?:[?#].*)?$/i.test(src))return '';
+    if(/(?:^|\/)assets\/(?:logo\.jpg|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+)(?:[?#].*)?$/i.test(src))return '';
     if(/(?:^|\/)assets\/favicon-(?:48|192|512)\.png(?:[?#].*)?$/i.test(src))return '';
     return src;
   }

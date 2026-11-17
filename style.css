@@ -162,12 +162,14 @@ img {
 }
 
 .brand img {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  padding: 2px;
   border: 1px solid var(--border-strong);
-  background: var(--surface-subtle);
+  background: #9B9B9B;
   flex-shrink: 0;
 }
 
@@ -185,8 +187,36 @@ img {
 .headActions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
+}
+
+.authHeaderControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.authLoginBtn,
+.authStatusBtn,
+.authLogoutBtn {
+  min-height: 38px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.authStatusBtn {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid transparent;
+}
+
+.authLoginBtn[hidden],
+.authStatusBtn[hidden],
+.authLogoutBtn[hidden] {
+  display: none !important;
 }
 
 .themeControl {
@@ -576,8 +606,8 @@ body.admin .adminOnly {
 }
 
 .heroLogo {
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   padding: 3px;
   background: linear-gradient(135deg, #E2B857, #20C087);
@@ -588,9 +618,11 @@ body.admin .adminOnly {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  padding: 3px;
   display: block;
-  background: #F4F6F8;
+  background: #9B9B9B;
 }
 
 .hero .eyebrow {
@@ -817,11 +849,63 @@ body.admin .adminOnly {
   color: var(--text-secondary);
 }
 
+.countdownTimer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.countdownTimer[hidden],
+.countdown[hidden] {
+  display: none !important;
+}
+
+.cdUnit {
+  min-width: 64px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.cdUnit strong {
+  font-family: var(--font-mono);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.cdUnit span {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cdSep {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .countdown {
   font-family: var(--font-mono);
   font-size: 12px !important;
   color: var(--gold) !important;
   font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+.mutedTitle {
+  color: var(--text-secondary) !important;
 }
 
 .noticeBanner,
@@ -929,26 +1013,161 @@ body.admin .adminOnly {
    Squad Grid & Player Cards (Zero-Pill Metadata)
    ========================================================================== */
 
+.squadToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.squadSearchWrap {
+  position: relative;
+  flex: 1 1 300px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.squadSearchIcon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 .searchPlayer {
   width: 100%;
   min-height: 46px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+  padding: 10px 44px 10px 42px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   font-size: 14px;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+
+.searchPlayer:hover {
+  border-color: var(--border-strong);
+}
+
+.searchPlayer:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.searchPlayer::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .searchPlayer::placeholder {
   color: var(--text-muted);
 }
 
+.squadSearchClear {
+  position: absolute;
+  right: 4px;
+  min-width: 38px;
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+
+.squadSearchClear:hover {
+  background: var(--surface-subtle);
+  color: var(--text);
+}
+
+.squadSearchClear[hidden] {
+  display: none !important;
+}
+
+.squadRoleFilters {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.squadRoleBtn {
+  min-height: 38px;
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 160ms var(--ease), color 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+
+.squadRoleBtn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+html[data-rdm-theme="dark"] .squadRoleBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.squadRoleBtn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(13, 27, 38, 0.08);
+}
+
+.squadFilterStatus {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.squadEmptyState {
+  margin-top: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 36px 20px;
+}
+
+.squadEmptyState[hidden] {
+  display: none !important;
+}
+
+.squadEmptyState p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
 .players {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+  align-items: start;
 }
 
 .player {
@@ -1068,10 +1287,14 @@ body.admin .adminOnly {
   width: 100%;
 }
 
-/* Squad Full Profile Inline Mode */
+/* Squad Full Profile & Expandable Stats Panel */
 .squadFullProfile {
-  grid-column: 1 / -1;
   text-align: center;
+  transition: transform 180ms var(--ease), border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+.squadFullProfile.is-stats-open {
+  border-color: var(--accent);
 }
 
 .squadEditFab {
@@ -1091,54 +1314,261 @@ body.admin .adminOnly {
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin: 10px 0;
+  margin: 8px 0 4px;
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-muted);
 }
 
 .squadSocials {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
-  width: min(460px, 100%);
-  margin: 12px auto;
+  width: 100%;
+  margin: 10px 0 2px;
 }
 
 .squadSocials a {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  padding: 8px 18px;
+  min-height: 36px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   background: var(--surface-subtle);
   color: var(--text);
   border: 1px solid var(--border);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.squadStats {
-  width: min(760px, 100%);
-  margin: 16px auto 4px;
-  padding: 18px;
-  border-radius: var(--radius-md);
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
+.squadStatsToggleBtn {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid transparent;
+  min-height: 40px;
+  padding: 8px 16px;
 }
 
-.squadStatsTitle {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
+.squadStatsToggleBtn:hover,
+.squadStatsToggleBtn.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.squadStats {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+.squadStatsPanel[hidden] {
+  display: none !important;
+}
+
+.squadStatsPanel:not([hidden]) {
+  animation: pageEnter 180ms var(--ease);
+}
+
+.squadStatsGroup + .squadStatsGroup {
+  margin-top: 12px;
+}
+
+.squadStatsGroupTitle {
+  font-size: 11px;
   font-weight: 700;
-  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.squadStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.squadStatsGridBowling {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.squadStatsGrid b {
+  background: var(--surface-subtle);
+  border-radius: var(--radius-sm);
+  padding: 9px 8px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  color: var(--text);
+}
+
+.squadStatsGrid small {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.squadStatLines {
+  margin-top: 10px;
+  text-align: center;
 }
 
 .squadStatLines p {
-  margin: 4px 0;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.squadCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.squadShareBtn {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  min-height: 40px;
+  padding: 8px 18px;
+}
+
+.squadShareBtn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.playerShareDialog {
+  width: min(460px, 100%);
+}
+
+.sharePlayerPreview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin: 8px 0 18px;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.sharePlayerPreview img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.shareKicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+
+.sharePlayerPreview h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.sharePlayerPreview p {
+  margin: 4px 0 0;
   font-size: 13px;
+  color: var(--text-muted);
+}
+
+.shareChannelGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.shareChannelBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease);
+}
+
+.shareChannelBtn .socialBrandSvg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.shareChannelBtn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.shareUrlBox {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.shareUrlBox input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
   color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.shareUrlBox button {
+  flex-shrink: 0;
+}
+
+.shareNativeBtn {
+  margin-top: 2px;
 }
 
 /* ==========================================================================
@@ -1645,6 +2075,12 @@ body.admin .adminOnly {
   object-fit: cover;
 }
 
+.socialIcon .socialBrandSvg {
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+
 .socialCard h3 {
   margin: 0 0 4px;
   font-family: var(--font-display);
@@ -1751,7 +2187,10 @@ body.admin .adminOnly {
   width: 140px;
   height: 140px;
   border-radius: 24px;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  padding: 4px;
+  background: #9B9B9B;
   border: 1px solid var(--border);
 }
 
@@ -2084,6 +2523,41 @@ body.admin .adminOnly {
   border: 1px solid var(--border);
 }
 
+.brandLogoPreviewRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+}
+
+.brandLogoPreviewRow img {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #9B9B9B;
+  border: 1px solid var(--border-strong);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.brandLogoPreviewRow strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.brandLogoPreviewRow p {
+  margin: 2px 0 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .brandAdminGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2104,6 +2578,196 @@ body.admin .adminOnly {
 .brandAdminGrid input[type="file"] {
   width: 100%;
   font-size: 12px;
+}
+
+.adminGateCard,
+.adminSessionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.adminGateCopy {
+  max-width: 620px;
+}
+
+.adminGateCopy h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  line-height: 1.1;
+}
+
+.adminGateCopy p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.adminGateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.adminSessionBar strong {
+  display: block;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.adminSessionBar span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.authLoginDialog {
+  width: min(440px, 100%);
+}
+
+.authRoleTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  margin-right: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.authRoleTab {
+  min-height: 38px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.authRoleTab.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(13, 27, 38, 0.08);
+}
+
+.authModalSub {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.authGoogleBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 160ms var(--ease), border-color 160ms var(--ease);
+}
+
+.authGoogleBtn:hover {
+  background: var(--surface-subtle);
+  border-color: var(--accent);
+}
+
+.authGoogleBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.authDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.authDivider::before,
+.authDivider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border);
+}
+
+.authForm {
+  display: grid;
+  gap: 12px;
+}
+
+.authField {
+  margin: 0 !important;
+}
+
+.authPassWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.authPassWrap input {
+  flex: 1 1 auto;
+}
+
+.authPassToggle {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+.authErrorBox {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.authErrorBox[hidden] {
+  display: none !important;
+}
+
+.authResetLink {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+  justify-self: center;
+}
+
+.authResetLink:hover {
+  text-decoration: underline;
 }
 
 /* ==========================================================================
@@ -2404,10 +3068,13 @@ footer {
 }
 
 footer img {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
+  padding: 2px;
+  background: #9B9B9B;
   border: 1px solid var(--border);
 }
 
@@ -2446,22 +3113,49 @@ footer b {
 @media (max-width: 640px) {
   .top {
     height: 54px;
-    padding: 0 16px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   .brand img {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
   }
 
   .brandTitle {
-    font-size: 1.15rem;
+    font-size: 0.98rem;
+  }
+
+  .headActions {
+    gap: 6px;
+  }
+
+  .authHeaderControls {
+    gap: 5px;
+  }
+
+  .authLoginBtn,
+  .authStatusBtn,
+  .authLogoutBtn,
+  .themeToggle {
+    min-height: 34px;
+    padding: 5px 10px;
+    font-size: 11.5px;
   }
 
   .nav {
     top: 54px;
     height: 42px;
     padding: 0 12px;
+  }
+
+  .cdUnit {
+    min-width: 56px;
+    padding: 6px 8px;
+  }
+
+  .cdUnit strong {
+    font-size: 1.15rem;
   }
 
   .hero {
@@ -2510,6 +3204,27 @@ footer b {
 
   .downloadBtnRow {
     justify-content: center;
+  }
+
+  .squadToolbar {
+    gap: 10px;
+  }
+
+  .squadRoleFilters {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .squadRoleFilters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .squadRoleBtn {
+    flex: 1 0 auto;
+    min-height: 40px;
+    padding: 8px 12px;
   }
 
   .actions.homeActions .primary,

@@ -4,12 +4,12 @@ const DEFAULT_SOCIAL_URLS={YOUTUBE:'https://www.youtube.com/@rehan_dominators_ma
 let rdmRemoteReady=false,rdmLoading=false,rdmCropTarget=null;
 const rdmStamp=()=>firebase.firestore.FieldValue.serverTimestamp();
 const rdmDocData=d=>({...d.data(),_docId:d.id});
-const rdmAdmin=()=>session?.mode==='admin';
-const rdmPlayer=()=>session?.mode==='player'?D.players.find(p=>p.id===session.playerId):null;
+const rdmAdmin=()=>session?.mode==='admin'&&window.__rdmUrlKeyRole==='admin';
+const rdmPlayer=()=>session?.mode==='player'&&window.__rdmUrlKeyRole==='player'?D.players.find(p=>p.id===session.playerId):null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeUrl=u=>/^https?:\/\//i.test(String(u||''))?String(u):'';
 const rdmStaticPlayerImage=u=>/^(?:\.?\/)?assets\/(?:rehan\.png|players\/)/i.test(String(u||''));
-function rdmRefresh(){window.rdmCleanStaticPlayerImages?.();render();if(session?.mode==='player')renderProfile();if(session?.mode==='admin')renderAdmin();}
+function rdmRefresh(){window.rdmCleanStaticPlayerImages?.();render();if(session?.mode==='player')renderProfile();window.renderAdmin?.();}
 async function rdmCompressFile(file,max=1000,quality=.72){
   if(!file)return'';const url=await new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
   const im=await new Promise((res,rej)=>{const x=new Image;x.onload=()=>res(x);x.onerror=rej;x.src=url});const scale=Math.min(1,max/Math.max(im.width,im.height));
@@ -46,16 +46,16 @@ async function rdmProfileWrite(p,extra={}){const uid=await rdmProfileUid(p.id);i
 
 function socialObj(x,i){return typeof x==='string'?{name:'SOCIAL '+(i+1),url:x}:x||{}}
 function profileHtml(p,editable=false,adminEdit=false){const socials=(p.socials||[]).map(socialObj).filter(s=>s.url||s.name);const sh=socials.length?`<div class="profileSocialList">${socials.map((s,i)=>`<div class="profileSocialRow"><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${mini(s.name||('SOCIAL '+(i+1)))}</a></div>`).join('')}</div>`:'<p class="mutedMini">ɴᴏ ꜱᴏᴄɪᴀʟ ʟɪɴᴋꜱ</p>';
-  return `<article class="profileCard publicProfileCard"><img class="profileAvatar" src="${esc(p.image||'assets/logo.jpg')}"><h2>${mini(p.name)}</h2><div class="profileIdentity"><div class="identityItem"><span>ᴘʟᴀʏᴇʀ ɪᴅ</span><strong>${miniId(p.id)}</strong></div><div class="identityDivider"></div><div class="identityItem"><span>ᴊᴇʀꜱᴇʏ ɴᴜᴍʙᴇʀ</span><strong>${p.jersey?'#'+esc(p.jersey):'—'}</strong></div></div>${p.nick?`<p class="profileNick">${mini(p.nick)}</p>`:''}<div class="profileOfficial"><b>${mini(p.role)}</b><br>${mini(p.detail)}</div>${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${sh}${editable?`<div class="profileEditHub"><button type="button" class="primary profileEditMain" onclick="openProfileEditMenu()">⚙ ᴇᴅɪᴛ ᴘʀᴏꜰɪʟᴇ</button><button type="button" class="secondary profileDownloadMain" onclick="openProfileDownload()">⬇ ᴅᴏᴡɴʟᴏᴀᴅ ᴘʀᴏꜰɪʟᴇ</button></div>`:''}${adminEdit?'':''}</article>`}
+  return `<article class="profileCard publicProfileCard"><img class="profileAvatar" src="${esc(p.image||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}"><h2>${mini(p.name)}</h2><div class="profileIdentity"><div class="identityItem"><span>ᴘʟᴀʏᴇʀ ɪᴅ</span><strong>${miniId(p.id)}</strong></div><div class="identityDivider"></div><div class="identityItem"><span>ᴊᴇʀꜱᴇʏ ɴᴜᴍʙᴇʀ</span><strong>${p.jersey?'#'+esc(p.jersey):'—'}</strong></div></div>${p.nick?`<p class="profileNick">${mini(p.nick)}</p>`:''}<div class="profileOfficial"><b>${mini(p.role)}</b><br>${mini(p.detail)}</div>${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${sh}${editable?`<div class="profileEditHub"><button type="button" class="primary profileEditMain" onclick="openProfileEditMenu()">⚙ Edit Profile</button><button type="button" class="secondary profileDownloadMain" onclick="openProfileDownload()">⬇ Download Profile</button></div>`:''}${adminEdit?'':''}</article>`}
 
-render=function(){q('#players').innerHTML=D.players.map(p=>{const n=(p.name||'').toUpperCase();const lead=n==='REHAN AKHTAR'?'CAPTAIN':n==='SAIF ALI'?'VICE-CAPTAIN':n==='SOAIB AKHTAR'?'WICKET-KEEPER':'';return `<article class="player clickablePlayer" onclick="openPlayerProfile('${p.id}')"><div class="photo"><img src="${esc(p.image||'assets/logo.jpg')}" alt="${esc(p.name)}"></div>${lead?`<div class="leadershipBadge ${lead==='VICE-CAPTAIN'?'vice':lead==='WICKET-KEEPER'?'keeper':''}">${lead==='CAPTAIN'?'♛':lead==='VICE-CAPTAIN'?'★':'🧤'} ${mini(lead)}</div>`:''}<div class="pbody"><span class="simplePlayerId">${miniId(p.id)}${p.jersey?' <em>#'+esc(p.jersey)+'</em>':''}</span><h3>${mini(p.name)}</h3><b>${mini(p.role)}</b><p>${mini(p.detail)}</p>${p.nick?`<p>ɴɪᴄᴋɴᴀᴍᴇ • ${mini(p.nick)}</p>`:''}<button class="tinyBtn viewProfileBtn" onclick="event.stopPropagation();openPlayerProfile('${p.id}')">ᴠɪᴇᴡ ᴘʀᴏꜰɪʟᴇ</button>${rdmAdmin()?`<button class="tinyBtn" onclick="event.stopPropagation();editPlayer('${p.id}')">✎ ᴇᴅɪᴛ</button>`:''}</div></article>`}).join('');
+render=function(){q('#players').innerHTML=D.players.map(p=>{const n=(p.name||'').toUpperCase();const lead=n==='REHAN AKHTAR'?'CAPTAIN':n==='SAIF ALI'?'VICE-CAPTAIN':n==='SOAIB AKHTAR'?'WICKET-KEEPER':'';const expanded=!!window.__rdmExpandedStats?.has(p.id);return `<article class="player clickablePlayer ${expanded?'is-stats-open':''}" data-player-id="${esc(p.id)}" onclick="openPlayerProfile('${esc(p.id)}')"><div class="photo"><img src="${esc(p.image||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}" alt="${esc(p.name)}"></div>${lead?`<div class="leadershipBadge ${lead==='VICE-CAPTAIN'?'vice':lead==='WICKET-KEEPER'?'keeper':''}">${lead==='CAPTAIN'?'♛':lead==='VICE-CAPTAIN'?'★':'🧤'} ${mini(lead)}</div>`:''}<div class="pbody"><span class="simplePlayerId">${miniId(p.id)}${p.jersey?' <em>#'+esc(p.jersey)+'</em>':''}</span><h3>${mini(p.name)}</h3><b>${mini(p.role)}</b><p>${mini(p.detail)}</p>${p.nick?`<p class="squadNick">Nickname · ${mini(p.nick)}</p>`:''}<div class="squadCardActions"><button type="button" class="tinyBtn squadStatsToggleBtn ${expanded?'active':''}" data-toggle-stats="${esc(p.id)}" aria-expanded="${expanded}" aria-controls="squad-stats-${esc(p.id)}"><span>${expanded?'Hide Stats':'View Stats'}</span></button><button type="button" class="tinyBtn squadShareBtn" data-share-player="${esc(p.id)}" aria-label="Share ${esc(mini(p.name))} profile"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span>Share</span></button>${rdmAdmin()?`<button type="button" class="tinyBtn" onclick="event.stopPropagation();editPlayer('${esc(p.id)}')">✎ Edit</button>`:''}</div>${squadStatsHtml(p,expanded)}</div></article>`}).join('');
  q('#honourList').innerHTML=D.honours.map((h,i)=>`<article class="honour"><div class="trophy"><img src="${h.image}" onclick="zoom('${h.image}')"></div><h3>${h.year} • ${mini(h.title)}</h3><p>${mini(h.sub)}</p>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('honours',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join('');
  q('#matchList').innerHTML=D.matches.length?D.matches.map((m,i)=>`<article class="card"><h3>${mini(m.opponent)}</h3><p>${mini(m.date)} • ${mini(m.venue)}</p><p>${mini(m.note)}</p>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('matches',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join(''):'<div class="empty">ɴᴏ ᴍᴀᴛᴄʜ ᴀᴅᴅᴇᴅ ʏᴇᴛ</div>';
  q('#newsList').innerHTML=D.news.length?D.news.map((n,i)=>`<article class="card"><h3>${mini(n.title)}</h3><p>${mini(n.text)}</p>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('news',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join(''):'<div class="empty">ɴᴏ ᴀɴɴᴏᴜɴᴄᴇᴍᴇɴᴛ ʏᴇᴛ</div>';
  q('#galleryList').innerHTML=D.gallery.length?D.gallery.map((g,i)=>`<figure><img src="${g.image}" onclick="zoom(this.src)"><figcaption>${mini(g.caption||'RDM MEMORY')}</figcaption>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('gallery',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</figure>`).join(''):'<div class="empty">ɴᴏ ɢᴀʟʟᴇʀʏ ᴘʜᴏᴛᴏ ᴀᴅᴅᴇᴅ ʏᴇᴛ</div>';
- q('#socialList').innerHTML=D.socials.map((o,i)=>{o=Array.isArray(o)?{name:o[0],url:o[1],icon:'↗'}:o;const media=o.image?`<img src="${o.image}" alt="${esc(o.name)}">`:`<span>${esc(o.icon||'↗')}</span>`;const open=o.url?`<a class="primary socialAction" href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">ᴏᴘᴇɴ</a>`:`<button class="secondary socialAction" disabled>ʟɪɴᴋ ɴᴏᴛ ᴀᴅᴅᴇᴅ</button>`;return `<article class="socialCard"><div class="socialIcon">${media}</div><h3>${mini(o.displayName||o.name)}</h3><p class="socialPlatform">${mini(o.name)}</p><div class="socialActions">${open}${rdmAdmin()?`<button class="tinyBtn socialAction" onclick="editSocial(${i})">✎ ᴇᴅɪᴛ</button><button class="tinyBtn socialAction danger" onclick="removeItem('socials',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</div></article>`}).join('');updateAuthUI()};
+ q('#socialList').innerHTML=D.socials.map((o,i)=>{o=Array.isArray(o)?{name:o[0],url:o[1],icon:'↗'}:o;const svg=window.rdmSocialSvg?.(o.name)||'';const media=(o.image&&!/CRICKET_YOUR_TAGLINE_HERE|logo\.jpg/i.test(o.image))?`<img src="${o.image}" alt="${esc(o.name)}">`:(svg||`<span>${esc(o.icon||'↗')}</span>`);const open=o.url?`<a class="primary socialAction" href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">Open</a>`:`<button class="secondary socialAction" disabled>Link Not Added</button>`;return `<article class="socialCard"><div class="socialIcon">${media}</div><h3>${mini(o.displayName||o.name)}</h3><p class="socialPlatform">${mini(o.name)}</p><div class="socialActions">${open}${rdmAdmin()?`<button class="tinyBtn socialAction" onclick="editSocial(${i})">✎ Edit</button><button class="tinyBtn socialAction danger" onclick="removeItem('socials',${i})">Delete</button>`:''}</div></article>`}).join('');updateAuthUI()};
 renderProfile=function(){const p=rdmPlayer();if(p)q('#profileBody').innerHTML=profileHtml(p,true,false)};
-window.openPlayerProfile=id=>{const p=D.players.find(x=>x.id===id);if(!p)return;let m=q('#publicProfileModal');if(!m){m=document.createElement('div');m.id='publicProfileModal';m.className='modal';m.innerHTML='<div class="dialog publicDialog"><button class="close" type="button">×</button><div id="publicProfileBody"></div></div>';document.body.appendChild(m);m.querySelector('.close').onclick=()=>m.classList.remove('show');}q('#publicProfileBody').innerHTML=profileHtml(p,false,rdmAdmin());m.classList.add('show')};
+window.openPlayerProfile=id=>{const p=D.players.find(x=>x.id===id);if(!p)return;let m=q('#publicProfileModal');if(!m){m=document.createElement('div');m.id='publicProfileModal';m.className='modal';m.innerHTML='<div class="dialog publicDialog"><button class="close" type="button" aria-label="Close">×</button><div id="publicProfileBody"></div></div>';document.body.appendChild(m);m.querySelector('.close').onclick=()=>m.classList.remove('show');m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')});}q('#publicProfileBody').innerHTML=profileHtml(p,false,rdmAdmin());m.classList.add('show')};
 
 
 function rdmOpenSimpleModal(title,fields,onSave){
@@ -194,7 +194,7 @@ q('#editForm').onsubmit=async e=>{e.preventDefault();if(!rdmAdmin())return toast
  if(editMode==='match')await rdmDB.collection(RCOL.matches).add({opponent:v('e1'),date:v('e2'),venue:v('e3'),note:v('e4'),createdMs:now,updatedAt:rdmStamp()});
  if(editMode==='news')await rdmDB.collection(RCOL.news).add({title:v('e1'),text:v('e2'),createdMs:now,updatedAt:rdmStamp()});
  if(editMode==='player'){const nums=(await rdmDB.collection(RCOL.players).get()).docs.map(d=>+String(d.id).replace(/\D/g,'')).filter(Number.isFinite),id='RDM'+String(Math.max(0,...nums)+1).padStart(3,'0');await rdmDB.collection(RCOL.players).doc(id).set({id,name:v('e1'),role:v('e2'),detail:v('e3'),image:img||'',jersey:'',order:nums.length+1,active:true,updatedAt:rdmStamp()})}
- if(editMode==='honour')await rdmDB.collection(RCOL.honours).add({year:v('e1'),title:v('e2'),sub:v('e3'),image:img||'assets/logo.jpg',order:D.honours.length+1,createdMs:now,updatedAt:rdmStamp()});
+ if(editMode==='honour')await rdmDB.collection(RCOL.honours).add({year:v('e1'),title:v('e2'),sub:v('e3'),image:img||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png',order:D.honours.length+1,createdMs:now,updatedAt:rdmStamp()});
  if(editMode==='gallery'){if(!img)return toast('ꜱᴇʟᴇᴄᴛ ᴀɴ ɪᴍᴀɢᴇ');await rdmDB.collection(RCOL.gallery).add({image:img,caption:v('e1')||'RDM MEMORY',album:v('e2')||'MEMORIES',createdMs:now,updatedAt:rdmStamp()})}
  if(editMode==='social')await rdmDB.collection(RCOL.socials).add({name:v('e1'),displayName:v('e4')||v('e1'),url:v('e2'),icon:v('e3')||'↗',image:img||'',order:D.socials.length+1,updatedAt:rdmStamp()});
  if(editMode==='editSocial')await rdmDB.collection(RCOL.socials).doc(editObj._docId).set({name:v('e1'),displayName:v('e4')||v('e1'),url:v('e2'),icon:v('e3')||editObj.icon||'↗',...(img?{image:img}:{}),updatedAt:rdmStamp()},{merge:true});
@@ -224,10 +224,10 @@ async function rdmDrawProfileImage(format='png'){
   const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#f0faff');bg.addColorStop(.48,'#fffbea');bg.addColorStop(1,'#effff6');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
   rdmCanvasRoundRect(ctx,34,34,W-68,H-68,44,'rgba(255,255,255,.97)','#b7ddec');
   const band=ctx.createLinearGradient(80,0,W-80,0);band.addColorStop(0,'#2e8ff2');band.addColorStop(.55,'#36c6dc');band.addColorStop(1,'#2bc793');rdmCanvasRoundRect(ctx,70,70,W-140,10,5,band,null);
-  let logo=null;try{logo=await rdmLoadImage('assets/logo.jpg')}catch{}
+  let logo=null;try{logo=await rdmLoadImage('/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}catch{}
   if(logo){ctx.save();ctx.beginPath();ctx.arc(105,132,38,0,Math.PI*2);ctx.clip();ctx.drawImage(logo,67,94,76,76);ctx.restore();ctx.strokeStyle='#d3b34f';ctx.lineWidth=3;ctx.beginPath();ctx.arc(105,132,40,0,Math.PI*2);ctx.stroke()}
   ctx.textAlign='left';ctx.fillStyle='#174f82';rdmCanvasFont(ctx,900,26);ctx.fillText(rdmExportMini('REHAN DOMINATORS MAHUAWAN'),165,128);ctx.fillStyle='#6f879b';rdmCanvasFont(ctx,700,15);ctx.fillText(rdmExportMini('MAHUAWAN • GOPALGANJ • BIHAR'),165,155);
-  let avatar=null;try{avatar=await rdmLoadImage(p.image||'assets/logo.jpg')}catch{try{avatar=await rdmLoadImage('assets/logo.jpg')}catch{}}
+  let avatar=null;try{avatar=await rdmLoadImage(p.image||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}catch{try{avatar=await rdmLoadImage('/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}catch{}}
   if(avatar){ctx.save();ctx.beginPath();ctx.arc(W/2,315,132,0,Math.PI*2);ctx.clip();const s=Math.max(264/avatar.width,264/avatar.height),dw=avatar.width*s,dh=avatar.height*s;ctx.drawImage(avatar,W/2-dw/2,315-dh/2,dw,dh);ctx.restore();ctx.strokeStyle='#26bd94';ctx.lineWidth=10;ctx.beginPath();ctx.arc(W/2,315,138,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(W/2,315,143,0,Math.PI*2);ctx.stroke()}
   ctx.textAlign='center';ctx.fillStyle='#174f82';rdmCanvasFont(ctx,900,42);ctx.fillText(rdmExportMini(p.name||'PLAYER'),W/2,505);
   rdmCanvasRoundRect(ctx,120,545,840,120,26,'#eef8ff','#c5e1ee');ctx.fillStyle='#d59a1c';rdmCanvasFont(ctx,900,15);ctx.fillText(rdmExportMini('PLAYER ID'),330,583);ctx.fillText(rdmExportMini('JERSEY NUMBER'),750,583);ctx.fillStyle='#174f82';rdmCanvasFont(ctx,900,27);ctx.fillText(rdmExportMini(p.id||'—'),330,627);ctx.fillText(rdmExportMini(p.jersey?'#'+p.jersey:'—'),750,627);ctx.strokeStyle='#6e8ba1';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(540,564);ctx.lineTo(540,648);ctx.stroke();
@@ -248,8 +248,161 @@ window.toggleProfileEditMenu=function(force){ if(force===false) closeProfileEdit
 
 
 /* V6.8.67 FULL PROFILE + STATS INSIDE SQUAD */
-function squadStatsHtml(p){const s=(typeof XD!=='undefined'&&XD.stats||[]).find(z=>z.playerId===p.id)||{},n=v=>Number(v||0)||0;return `<div class="squadStats"><div class="squadStatsTitle">ᴘʟᴀʏᴇʀ ꜱᴛᴀᴛꜱ</div><div class="statNums"><b>${n(s.matches)}<small>ᴍᴀᴛᴄʜᴇꜱ</small></b><b>${n(s.runs)}<small>ʀᴜɴꜱ</small></b><b>${n(s.wickets)}<small>ᴡɪᴄᴋᴇᴛꜱ</small></b><b>${n(s.highScore)}<small>ʜɪɢʜ ꜱᴄᴏʀᴇ</small></b><b>${n(s.fours)}<small>4ꜱ</small></b><b>${n(s.sixes)}<small>6ꜱ</small></b><b>${n(s.fifties)}<small>50ꜱ</small></b><b>${n(s.hundreds)}<small>100ꜱ</small></b><b>${n(s.runOuts)}<small>ʀᴜɴ ᴏᴜᴛꜱ</small></b><b>${n(s.strikeRate)}<small>ꜱᴛʀɪᴋᴇ ʀᴀᴛᴇ</small></b><b>${n(s.economy)}<small>ᴇᴄᴏɴᴏᴍʏ</small></b><b>${n(s.ballsFaced)}<small>ʙᴀʟʟꜱ ꜰᴀᴄᴇᴅ</small></b></div><div class="squadStatLines"><p>ʙᴇꜱᴛ ʙᴏᴡʟɪɴɢ • ${esc(s.bestBowling||'—')}</p><p>ʟᴀꜱᴛ 5 • ${esc(s.last5||'—')} • ꜱᴇᴀꜱᴏɴ • ${esc(s.season||'2027')}</p></div></div>`}
-function renderSquadFullProfiles(){const box=q('#players');if(!box)return;box.innerHTML=D.players.map(p=>{const n=(p.name||'').toUpperCase(),lead=n==='REHAN AKHTAR'?'CAPTAIN':n==='SAIF ALI'?'VICE-CAPTAIN':n==='SOAIB AKHTAR'?'WICKET-KEEPER':'';const socials=(p.socials||[]).map(socialObj).filter(s=>s.url||s.name);return `<article class="player squadFullProfile">${rdmAdmin()?`<button type="button" class="squadEditFab" aria-label="Edit ${esc(p.name)}" title="Edit" onclick="openSquadEditMenu('${p.id}')">✏️</button>`:''}<div class="photo"><img src="${esc(p.image||'assets/logo.jpg')}" alt="${esc(p.name)}"></div>${lead?`<div class="leadershipBadge ${lead==='VICE-CAPTAIN'?'vice':lead==='WICKET-KEEPER'?'keeper':''}">${lead==='CAPTAIN'?'♛':lead==='VICE-CAPTAIN'?'★':'🧤'} ${mini(lead)}</div>`:''}<div class="pbody"><div class="squadIdentity"><span>${miniId(p.id)}</span><span>${p.jersey?'#'+esc(p.jersey):'—'}</span></div><h3>${mini(p.name)}</h3><b>${mini(p.role)}</b><p>${mini(p.detail)}</p>${p.nick?`<p>ɴɪᴄᴋɴᴀᴍᴇ • ${mini(p.nick)}</p>`:''}${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${socials.length?`<div class="squadSocials">${socials.map((s,i)=>`<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${mini(s.name||('SOCIAL '+(i+1)))}</a>`).join('')}</div>`:''}${squadStatsHtml(p)}</div></article>`}).join('')}
+if(!window.__rdmExpandedStats)window.__rdmExpandedStats=new Set();
+function squadStatsHtml(p,expanded=false){
+  const s=(typeof XD!=='undefined'&&XD.stats||[]).find(z=>z.playerId===p.id)||{};
+  const n=v=>Number(v||0)||0;
+  return `<div class="squadStats squadStatsPanel" id="squad-stats-${esc(p.id)}" ${expanded?'':'hidden'}>
+    <div class="squadStatsGroup">
+      <div class="squadStatsGroupTitle">Batting Statistics</div>
+      <div class="squadStatsGrid">
+        <b>${n(s.matches)}<small>Matches</small></b>
+        <b>${n(s.runs)}<small>Runs</small></b>
+        <b>${n(s.highScore)}<small>High Score</small></b>
+        <b>${n(s.ballsFaced)}<small>Balls Faced</small></b>
+        <b>${n(s.strikeRate)}<small>Strike Rate</small></b>
+        <b>${n(s.fours)} / ${n(s.sixes)}<small>4s / 6s</small></b>
+        <b>${n(s.fifties)} / ${n(s.hundreds)}<small>50s / 100s</small></b>
+        <b>${n(s.runOuts)}<small>Run Outs</small></b>
+      </div>
+    </div>
+    <div class="squadStatsGroup">
+      <div class="squadStatsGroupTitle">Bowling Statistics</div>
+      <div class="squadStatsGrid squadStatsGridBowling">
+        <b>${n(s.wickets)}<small>Wickets</small></b>
+        <b>${esc(s.bestBowling||'—')}<small>Best Bowling</small></b>
+        <b>${n(s.economy)}<small>Economy</small></b>
+      </div>
+    </div>
+    <div class="squadStatLines">
+      <p>Last 5: ${esc(s.last5||'—')} · Season: ${esc(s.season||'2027')}</p>
+    </div>
+  </div>`;
+}
+function squadCardActionsHtml(p,expanded=false){
+  const label=mini(p?.name||'Player');
+  return `<div class="squadCardActions">
+    <button type="button" class="tinyBtn squadStatsToggleBtn ${expanded?'active':''}" data-toggle-stats="${esc(p.id)}" aria-expanded="${expanded}" aria-controls="squad-stats-${esc(p.id)}">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>${expanded?'Hide Stats':'View Stats'}</span>
+    </button>
+    <button type="button" class="tinyBtn squadShareBtn" data-share-player="${esc(p.id)}" aria-label="Share ${esc(label)} profile">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <span>Share Profile</span>
+    </button>
+  </div>`;
+}
+function renderSquadFullProfiles(){const box=q('#players');if(!box)return;box.innerHTML=D.players.map(p=>{const n=(p.name||'').toUpperCase(),lead=n==='REHAN AKHTAR'?'CAPTAIN':n==='SAIF ALI'?'VICE-CAPTAIN':n==='SOAIB AKHTAR'?'WICKET-KEEPER':'';const socials=(p.socials||[]).map(socialObj).filter(s=>s.url||s.name);const expanded=!!window.__rdmExpandedStats?.has(p.id);return `<article class="player squadFullProfile ${expanded?'is-stats-open':''}" data-player-id="${esc(p.id)}">${rdmAdmin()?`<button type="button" class="squadEditFab" aria-label="Edit ${esc(p.name)}" title="Edit" onclick="openSquadEditMenu('${esc(p.id)}')">✏️</button>`:''}<div class="photo"><img src="${esc(p.image||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png')}" alt="${esc(p.name)}"></div>${lead?`<div class="leadershipBadge ${lead==='VICE-CAPTAIN'?'vice':lead==='WICKET-KEEPER'?'keeper':''}">${lead==='CAPTAIN'?'♛':lead==='VICE-CAPTAIN'?'★':'🧤'} ${mini(lead)}</div>`:''}<div class="pbody"><div class="squadIdentity"><span>${miniId(p.id)}</span><span>${p.jersey?'#'+esc(p.jersey):'—'}</span></div><h3>${mini(p.name)}</h3><b>${mini(p.role)}</b><p>${mini(p.detail)}</p>${p.nick?`<p class="squadNick">Nickname · ${mini(p.nick)}</p>`:''}${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${socials.length?`<div class="squadSocials">${socials.map((s,i)=>`<a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${mini(s.name||('SOCIAL '+(i+1)))}</a>`).join('')}</div>`:''}${squadCardActionsHtml(p,expanded)}${squadStatsHtml(p,expanded)}</div></article>`}).join('')}
+window.toggleSquadPlayerStats=function(id,btn){
+  const card=btn?.closest('.player')||document.querySelector(`#players .player[data-player-id="${CSS.escape(id)}"]`);
+  const panel=document.getElementById(`squad-stats-${id}`)||card?.querySelector('.squadStatsPanel');
+  if(!card||!panel)return;
+  const open=panel.hidden;
+  panel.hidden=!open;
+  card.classList.toggle('is-stats-open',open);
+  if(open)window.__rdmExpandedStats.add(id);else window.__rdmExpandedStats.delete(id);
+  const toggleBtn=card.querySelector('[data-toggle-stats]');
+  if(toggleBtn){
+    toggleBtn.classList.toggle('active',open);
+    toggleBtn.setAttribute('aria-expanded',String(open));
+    const span=toggleBtn.querySelector('span');
+    if(span)span.textContent=open?'Hide Stats':'View Stats';
+  }
+};
+if(!window.__rdmStatsToggleDelegated){
+  window.__rdmStatsToggleDelegated=true;
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?.('[data-toggle-stats]');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
+    window.toggleSquadPlayerStats?.(btn.dataset.toggleStats,btn);
+  });
+}
+window.openPlayerShareModal=function(id){
+  const p=(D.players||[]).find(x=>x.id===id);
+  if(!p)return;
+  document.getElementById('playerShareModal')?.remove();
+  const name=mini(p.name||'Player');
+  const role=mini(p.role||'Squad Player');
+  const avatar=p.image||'/assets/aistudio/CRICKET_YOUR_TAGLINE_HERE-_20261103_131851_0000_634ce955.png';
+  const shareUrl=`${location.origin}${location.pathname}#player=${encodeURIComponent(p.id)}`;
+  const shareText=`${name} (${role}) — Rehan Dominators Mahuawan Official Squad`;
+  const waHref=`https://wa.me/?text=${encodeURIComponent(shareText+'\n'+shareUrl)}`;
+  const xHref=`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+  const fbHref=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+  const tgHref=`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+  const hasNative=typeof navigator.share==='function';
+  const m=document.createElement('div');
+  m.id='playerShareModal';
+  m.className='modal show rdmUnifiedModal';
+  m.innerHTML=`<div class="dialog rdmUnifiedDialog playerShareDialog" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="sharePlayerPreview">
+      <img src="${esc(avatar)}" alt="${esc(name)}" referrerPolicy="no-referrer">
+      <div>
+        <span class="shareKicker">Share Player Profile</span>
+        <h2 id="shareModalTitle">${esc(name)}</h2>
+        <p>${esc(role)} · ${esc(miniId(p.id))}${p.jersey?' · #'+esc(p.jersey):''}</p>
+      </div>
+    </div>
+    <div class="shareChannelGrid">
+      <a class="shareChannelBtn wa" href="${esc(waHref)}" target="_blank" rel="noopener noreferrer">${window.rdmSocialSvg?.('WHATSAPP')||''}<span>WhatsApp</span></a>
+      <a class="shareChannelBtn x" href="${esc(xHref)}" target="_blank" rel="noopener noreferrer"><span>X / Twitter</span></a>
+      <a class="shareChannelBtn fb" href="${esc(fbHref)}" target="_blank" rel="noopener noreferrer">${window.rdmSocialSvg?.('FACEBOOK')||''}<span>Facebook</span></a>
+      <a class="shareChannelBtn tg" href="${esc(tgHref)}" target="_blank" rel="noopener noreferrer">${window.rdmSocialSvg?.('TELEGRAM')||''}<span>Telegram</span></a>
+    </div>
+    <div class="shareUrlBox">
+      <input type="text" readonly value="${esc(shareUrl)}" aria-label="Shareable player profile URL">
+      <button type="button" class="primary" id="shareCopyBtn">Copy Link</button>
+    </div>
+    ${hasNative?'<button type="button" class="secondary wide shareNativeBtn" id="shareNativeBtn">Share via Device</button>':''}
+  </div>`;
+  document.body.appendChild(m);
+  const close=()=>{document.removeEventListener('keydown',onKey);m.remove()};
+  const onKey=e=>{if(e.key==='Escape')close()};
+  document.addEventListener('keydown',onKey);
+  m.querySelector('.close').onclick=close;
+  m.addEventListener('click',e=>{if(e.target===m)close()});
+  const urlInput=m.querySelector('.shareUrlBox input');
+  urlInput.addEventListener('focus',()=>urlInput.select());
+  const copyBtn=m.querySelector('#shareCopyBtn');
+  copyBtn.addEventListener('click',async()=>{
+    let copied=false;
+    try{
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(shareUrl);copied=true;}
+    }catch{}
+    if(!copied){
+      try{urlInput.focus();urlInput.select();copied=document.execCommand('copy');}catch{}
+    }
+    if(copied){
+      copyBtn.textContent='Copied!';
+      toast?.('Profile link copied');
+      setTimeout(()=>{if(copyBtn.isConnected)copyBtn.textContent='Copy Link'},1800);
+    }else{
+      urlInput.focus();urlInput.select();
+      toast?.('Select and copy the link');
+    }
+  });
+  m.querySelector('#shareNativeBtn')?.addEventListener('click',async()=>{
+    try{
+      await navigator.share({title:`${name} · RDM`,text:shareText,url:shareUrl});
+    }catch(err){
+      if(err&&err.name==='AbortError')return;
+      copyBtn.click();
+    }
+  });
+};
+if(!window.__rdmShareDelegated){
+  window.__rdmShareDelegated=true;
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest?.('[data-share-player]');
+    if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
+    window.openPlayerShareModal?.(btn.dataset.sharePlayer);
+  });
+}
 window.openSquadEditMenu=function(id){if(!rdmAdmin())return;document.getElementById('squadEditModal')?.remove();const p=D.players.find(x=>x.id===id);if(!p)return;const m=document.createElement('div');m.id='squadEditModal';m.className='modal show';m.innerHTML=`<div class="dialog rdmUnifiedDialog squadEditDialog"><button class="close" type="button" aria-label="Close">×</button><h2>ᴇᴅɪᴛ ${mini(p.name)}</h2><div class="squadEditChoices"><button class="squadEditChoice" type="button">👤 <span><b>ᴘʟᴀʏᴇʀ ᴅᴇᴛᴀɪʟꜱ</b><small>ᴘʀᴏꜰɪʟᴇ • ᴊᴇʀꜱᴇʏ • ʀᴏʟᴇ • ʙɪᴏ • ꜱᴏᴄɪᴀʟꜱ</small></span></button><button class="squadEditChoice" type="button">📊 <span><b>ᴘʟᴀʏᴇʀ ꜱᴛᴀᴛꜱ</b><small>ᴍᴀᴛᴄʜᴇꜱ • ʀᴜɴꜱ • ᴡɪᴄᴋᴇᴛꜱ • ʙᴀʟʟꜱ ꜰᴀᴄᴇᴅ</small></span></button></div></div>`;document.body.appendChild(m);const choices=m.querySelectorAll('.squadEditChoice');choices[0].onclick=()=>{m.remove();editPlayer(id)};choices[1].onclick=()=>{m.remove();editStats(id)};m.querySelector('.close').onclick=()=>m.remove();m.onclick=e=>{if(e.target===m)m.remove()}}
 const renderBeforeSquadFull=render;render=function(){renderBeforeSquadFull();renderSquadFullProfiles()};
 
