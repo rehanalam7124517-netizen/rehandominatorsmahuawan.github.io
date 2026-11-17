@@ -6,7 +6,7 @@ const BRAND_DOC=()=>window.rdmDB?.collection('BrandSettings').doc('main');
 let brand={logo:'',favicon:'',appIcon:'',socialPreview:''};
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function initials(name){return String(name||'RDM').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'RDM'}
-function placeholder(name){const t=initials(name);return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="128" fill="#eaf5fb"/><circle cx="128" cy="128" r="118" fill="none" stroke="#1b6f9e" stroke-width="6"/><text x="128" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="64" font-weight="700" fill="#155f91">${t}</text></svg>`)}
+function placeholder(name){const t=initials(name);return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="128" fill="#ebf2ee"/><circle cx="128" cy="128" r="118" fill="none" stroke="#0e6347" stroke-width="6"/><text x="128" y="145" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-size="68" font-weight="700" fill="#0e6347">${t}</text></svg>`)}
 function cleanPlayers(){if(!window.D?.players)return;D.players.forEach(p=>{if(!p.image||STATIC_PLAYER.test(String(p.image)))p.image=placeholder(p.name)})}
 window.rdmCleanStaticPlayerImages=cleanPlayers;
 function applyBrand(){

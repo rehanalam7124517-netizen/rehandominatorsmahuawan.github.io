@@ -65,8 +65,23 @@ rdmRepairRoster2026();
 const requiredSocials=fresh().socials;requiredSocials.forEach(def=>{let found=D.socials.find(x=>String((Array.isArray(x)?x[0]:x.name)||'').toUpperCase().includes(def.name));if(!found)D.socials.push({...def});else if(!Array.isArray(found)){if(found.image===undefined)found.image='';if(!found.icon)found.icon=def.icon;}});
 D.players.forEach(p=>{const d=playerDefaults[p.id];if(d){if(!p.nick)p.nick=d.nick;if(!p.bio)p.bio=d.bio;}});if(!Array.isArray(D.matches))D.matches=[];if(!Array.isArray(D.news))D.news=[];if(!Array.isArray(D.gallery))D.gallery=[];let session=null;try{session=JSON.parse(localStorage.getItem(SK))}catch{}let loginMode='player',editMode='',editObj=null;
 const q=s=>document.querySelector(s),qa=s=>[...document.querySelectorAll(s)],save=()=>localStorage.setItem(K,JSON.stringify(D));
-function mini(s=''){const m={A:'ᴀ',B:'ʙ',C:'ᴄ',D:'ᴅ',E:'ᴇ',F:'ꜰ',G:'ɢ',H:'ʜ',I:'ɪ',J:'ᴊ',K:'ᴋ',L:'ʟ',M:'ᴍ',N:'ɴ',O:'ᴏ',P:'ᴘ',Q:'ǫ',R:'ʀ',S:'ꜱ',T:'ᴛ',U:'ᴜ',V:'ᴠ',W:'ᴡ',X:'x',Y:'ʏ',Z:'ᴢ'};return String(s).toUpperCase().split('').map(c=>m[c]||c).join('')}
-function miniId(s=''){return mini(s)}function toast(t){let x=q('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1600)}
+function mini(s=''){
+  const str=String(s??'').trim();
+  if(!str)return '';
+  const map={'ᴀ':'A','ʙ':'B','ᴄ':'C','ᴅ':'D','ᴇ':'E','ꜰ':'F','ɢ':'G','ʜ':'H','ɪ':'I','ᴊ':'J','ᴋ':'K','ʟ':'L','ᴍ':'M','ɴ':'N','ᴏ':'O','ᴘ':'P','ǫ':'Q','ʀ':'R','ꜱ':'S','ᴛ':'T','ᴜ':'U','ᴠ':'V','ᴡ':'W','ʏ':'Y','ᴢ':'Z'};
+  const ascii=str.replace(/[ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡʏᴢ]/g,c=>map[c]||c);
+  if(/^(RDM\d+|RA\d+|SA-V|SO-WK|AKA|ASI|WSM|JBD|GLM|SHA\d+|SAL\d+|LKY|KLF|SKH|ABS|SBA|ZSN|JVD)$/i.test(ascii))return ascii.toUpperCase();
+  if(ascii===ascii.toUpperCase()&&/[A-Z]{2,}/.test(ascii)){
+    let out=ascii.toLowerCase().replace(/\b([a-z])/g,(m,c,idx,full)=>{
+      const w=full.slice(idx).match(/^[a-z]+/i)?.[0]||'';
+      if(idx>0&&['and','or','of','the','in','on','to','for','at','by','vs','is'].includes(w.toLowerCase()))return w.toLowerCase().charAt(0);
+      return c.toUpperCase();
+    });
+    return out.replace(/\b(Rdm|Xi|H2h|Mpl|Potm|Nr|Pwa)\b/gi,m=>m.toUpperCase()).replace(/\bSk\./gi,'SK.');
+  }
+  return ascii;
+}
+function miniId(s=''){return String(s??'').toUpperCase()}function toast(t){let x=q('#toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1600)}
 function go(id){if((id==='profile'&&session?.mode!=='player')||(id==='admin'&&session?.mode!=='admin'))return;qa('.page').forEach(x=>x.classList.toggle('active',x.id===id));qa('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));if(id==='profile')renderProfile();if(id==='admin')renderAdmin();scrollTo({top:0,behavior:'smooth'})}
 qa('[data-page]').forEach(b=>b.onclick=()=>go(b.dataset.page));qa('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function isAdmin(){return session?.mode==='admin'}function currentPlayer(){return D.players.find(p=>p.id===session?.playerId)}

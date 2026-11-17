@@ -1,10 +1,19 @@
 /* RDM V6.8.21 — unified Edit-Player style modal forms */
 (()=>{
 /* V6.8.24 — real Unicode mini-font UI for every Add/Edit form */
-const RDM_MINI_MAP={
-'A':'ᴀ','B':'ʙ','C':'ᴄ','D':'ᴅ','E':'ᴇ','F':'ꜰ','G':'ɢ','H':'ʜ','I':'ɪ','J':'ᴊ','K':'ᴋ','L':'ʟ','M':'ᴍ','N':'ɴ','O':'ᴏ','P':'ᴘ','Q':'ǫ','R':'ʀ','S':'ꜱ','T':'ᴛ','U':'ᴜ','V':'ᴠ','W':'ᴡ','X':'x','Y':'ʏ','Z':'ᴢ'
-};
-function rdmMiniText(v){return String(v??'').replace(/[A-Za-z]/g,ch=>RDM_MINI_MAP[ch.toUpperCase()]||ch)}
+function rdmMiniText(v){
+  const str=String(v??'');
+  const map={'ᴀ':'A','ʙ':'B','ᴄ':'C','ᴅ':'D','ᴇ':'E','ꜰ':'F','ɢ':'G','ʜ':'H','ɪ':'I','ᴊ':'J','ᴋ':'K','ʟ':'L','ᴍ':'M','ɴ':'N','ᴏ':'O','ᴘ':'P','ǫ':'Q','ʀ':'R','ꜱ':'S','ᴛ':'T','ᴜ':'U','ᴠ':'V','ᴡ':'W','ʏ':'Y','ᴢ':'Z'};
+  const ascii=str.replace(/[ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡʏᴢ]/g,ch=>map[ch]||ch);
+  if(ascii===ascii.toUpperCase()&&/[A-Z]{2,}/.test(ascii)){
+    return ascii.toLowerCase().replace(/\b([a-z])/g,(m,c,idx,full)=>{
+      const w=full.slice(idx).match(/^[a-z]+/i)?.[0]||'';
+      if(idx>0&&['and','or','of','the','in','on','to','for','at','by','vs'].includes(w.toLowerCase()))return w.toLowerCase().charAt(0);
+      return c.toUpperCase();
+    }).replace(/\b(Rdm|Xi|Id|Potm)\b/gi,m=>m.toUpperCase());
+  }
+  return ascii;
+}
 function rdmMiniFormUI(root=document){
   const scopes=[];
   if(root.nodeType===1 && (root.matches?.('.dialog,.rdmUnifiedDialog,.rdmInlineForm') || root.querySelector?.('form'))) scopes.push(root);
