@@ -2,7 +2,7 @@
   'use strict';
   const standalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7400').catch(console.warn));
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7500').catch(console.warn));
   }
 
   let promptEvent = null;

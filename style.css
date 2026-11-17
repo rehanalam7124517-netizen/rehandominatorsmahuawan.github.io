@@ -350,9 +350,10 @@ img {
    ========================================================================== */
 
 main {
-  width: min(1200px, 100%);
+  width: 100%;
+  max-width: 1680px;
   margin: 0 auto;
-  padding: 28px clamp(16px, 4vw, 36px) 80px;
+  padding: clamp(18px, 2.4vw, 32px) clamp(14px, 3.2vw, 48px) 84px;
 }
 
 .page {
@@ -562,17 +563,17 @@ body.admin .adminOnly {
 
 .hero {
   position: relative;
-  min-height: 480px;
-  border-radius: var(--radius-lg);
+  min-height: clamp(540px, 78vh, 840px);
+  border-radius: clamp(18px, 2vw, 28px);
   overflow: hidden;
-  border: 1px solid rgba(239, 68, 68, 0.28);
-  background: #0B0D12;
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  background: #090A0E;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: clamp(38px, 6.5vw, 76px) clamp(20px, 5vw, 48px);
-  box-shadow: 0 20px 54px rgba(6, 7, 10, 0.36);
+  padding: clamp(42px, 7vw, 88px) clamp(20px, 5vw, 56px);
+  box-shadow: 0 24px 72px rgba(6, 7, 10, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .heroBackdrop {
@@ -595,9 +596,9 @@ body.admin .adminOnly {
   z-index: 1;
   background: radial-gradient(
     ellipse at center,
-    rgba(24, 16, 18, 0.70) 0%,
-    rgba(11, 13, 18, 0.88) 62%,
-    rgba(8, 9, 12, 0.97) 100%
+    rgba(26, 14, 17, 0.64) 0%,
+    rgba(10, 11, 16, 0.86) 58%,
+    rgba(7, 8, 11, 0.96) 100%
   );
 }
 
@@ -605,7 +606,7 @@ body.admin .adminOnly {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 780px;
+  max-width: 860px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -621,15 +622,15 @@ body.admin .adminOnly {
 }
 
 .heroLogo {
-  width: 132px;
-  height: 132px;
+  width: clamp(128px, 13vw, 156px);
+  height: clamp(128px, 13vw, 156px);
   border-radius: 50%;
   overflow: hidden;
   padding: 0;
-  border: 3px solid rgba(239, 68, 68, 0.88);
+  border: 3px solid rgba(239, 68, 68, 0.92);
   background: #9E9E9E;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 0 4px rgba(255, 255, 255, 0.08);
-  margin: 0 auto 22px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.60), 0 0 0 6px rgba(255, 255, 255, 0.08);
+  margin: 0 auto 24px;
 }
 
 .heroLogo img {
@@ -645,9 +646,9 @@ body.admin .adminOnly {
 .hero .eyebrow {
   width: 100%;
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #FCA5A5;
   text-align: center;
@@ -656,20 +657,20 @@ body.admin .adminOnly {
 .heroTeam {
   width: 100%;
   font-family: var(--font-display);
-  font-size: 1.38rem;
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #E5E7EB;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
 .hero h1 {
   width: 100%;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 5.4vw, 4.3rem);
+  font-size: clamp(2.65rem, 6vw, 4.75rem);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: 0.015em;
@@ -2802,10 +2803,11 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .matchPosterCard {
   text-align: center;
-  padding: 28px 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--gold);
-  background: radial-gradient(ellipse at top, rgba(32, 192, 135, 0.14), transparent 70%), var(--surface-subtle);
+  padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 36px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--accent);
+  background: radial-gradient(ellipse at top, var(--accent-soft), transparent 72%), var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .matchPosterCard h2 {
@@ -2971,81 +2973,173 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 }
 
 /* ==========================================================================
-   Modals, Forms, Cropper, Lightbox, Toast & Footer
+   Full-Screen Premium Modals, Forms, Cropper, Lightbox & Toast
    ========================================================================== */
+
+body:has(.modal.show) {
+  overflow: hidden;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: 80;
   display: none;
-  place-items: center;
-  padding: 16px;
-  background: rgba(6, 12, 18, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 0;
+  background: var(--bg);
+  overflow: hidden;
 }
 
 .modal.show {
-  display: grid;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.modal::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent));
+  z-index: 95;
+  pointer-events: none;
 }
 
 .dialog {
   position: relative;
-  width: min(520px, 100%);
-  max-height: 88vh;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   overflow-y: auto;
-  background: var(--surface);
+  overscroll-behavior: contain;
+  background:
+    radial-gradient(ellipse 88% 42% at 50% 0%, var(--accent-soft), transparent 64%),
+    var(--bg);
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 26px;
-  box-shadow: var(--shadow-modal);
+  border: 0;
+  border-radius: 0;
+  padding: clamp(20px, 3.5vw, 44px) clamp(16px, 5vw, 56px) 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  box-shadow: none;
+  animation: modalEnter 200ms var(--ease);
 }
 
-.publicDialog,
-.proDialog,
-.adminPlayerDialog,
-.socialManagerDialog {
-  width: min(720px, 100%);
+.dialog > *:not(.close) {
+  width: min(860px, 100%);
+}
+
+.publicDialog > *:not(.close),
+.proDialog > *:not(.close),
+.adminPlayerDialog > *:not(.close) {
+  width: min(1040px, 100%);
+}
+
+.rdmConfirmDialog > *:not(.close),
+.profileDownloadDialog > *:not(.close),
+.galleryMoveDialog > *:not(.close),
+.squadEditDialog > *:not(.close),
+.profileEditDialog > *:not(.close),
+.playerShareDialog > *:not(.close),
+.installGuideDialog > *:not(.close),
+.matchPosterDialog > *:not(.close),
+#cropModal .dialog > *:not(.close) {
+  width: min(580px, 100%);
+}
+
+.publicProfileCard {
+  max-width: 720px;
+  margin: 8px auto 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 4vw, 38px);
+  box-shadow: var(--shadow-card);
+}
+
+#cropModal .dialog,
+#rdmConfirmModal .dialog,
+#profileDownloadModal .dialog,
+#squadEditModal .dialog,
+#profileEditModal .dialog,
+#galleryMoveModal .dialog,
+#playerShareModal .dialog,
+#rdmInstallGuideModal .dialog,
+#v6PosterModal .dialog {
+  justify-content: safe center;
 }
 
 .dialog h2 {
-  margin: 0 0 16px;
-  padding-right: 40px;
+  margin: 8px 0 18px;
+  padding-right: 52px;
   font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 700;
+  font-size: clamp(1.85rem, 3.4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  line-height: 1.06;
+  color: var(--text);
+}
+
+.dialog .publicProfileCard h2,
+.dialog .sharePlayerPreview h2,
+.dialog .installGuideHead h2,
+.dialog .matchPosterCard h2 {
+  padding-right: 0;
 }
 
 .close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 38px;
-  height: 38px;
+  position: sticky;
+  top: 0;
+  align-self: flex-end;
+  margin-bottom: -44px;
+  z-index: 30;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface-subtle);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   color: var(--text);
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
   display: grid;
   place-items: center;
   cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: background 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease), transform 160ms var(--ease);
 }
 
 .close:hover {
-  background: var(--surface-hover);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  transform: scale(1.04);
 }
 
 .dialog label,
 .proField {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   margin: 12px 0;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--text-secondary);
 }
 
@@ -3053,17 +3147,19 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .dialog textarea,
 .dialog select {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 14px;
+  min-height: 46px;
+  padding: 11px 15px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-strong);
-  background: var(--surface-subtle);
+  background: var(--surface);
   color: var(--text);
-  font-size: 14px;
+  font-size: 14.5px;
+  letter-spacing: normal;
+  transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease), background 160ms var(--ease);
 }
 
 .dialog textarea {
-  min-height: 96px;
+  min-height: 110px;
   resize: vertical;
 }
 
@@ -3072,6 +3168,109 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .dialog select:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.rdmUnifiedFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin: 8px 0 20px;
+}
+
+.rdmUnifiedFields label {
+  margin: 0;
+}
+
+.rdmUnifiedFields label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+.rdmConfirmText,
+.profileDownloadNote {
+  margin: -6px 0 22px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.profileDownloadChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profileDownloadChoices button {
+  min-height: 52px;
+}
+
+.squadEditChoices {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.squadEditChoice {
+  width: 100%;
+  min-height: 68px;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  font-size: 22px;
+  transition: transform 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.squadEditChoice span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.squadEditChoice b {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.squadEditChoice small {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.squadEditChoice::after {
+  content: '›';
+  font-size: 22px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.squadEditChoice:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--surface-subtle);
+}
+
+.profileEditRow {
+  background: var(--surface);
+  min-height: 58px;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: transform 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.profileEditRow:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  background: var(--surface-subtle);
 }
 
 .remember {
@@ -3089,7 +3288,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .proGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px 18px;
 }
 
 .v62Grid .full,
@@ -3099,10 +3298,12 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .proTitle {
   margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
 
 .proTitle h2 {
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .proTitle p {
@@ -3113,16 +3314,17 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .proGroup {
   margin: 14px 0;
-  padding: 16px;
+  padding: 20px 22px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: var(--surface-subtle);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .proGroup h3 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   color: var(--accent);
 }
 
@@ -3131,16 +3333,16 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .proLocStatus {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text-muted);
 }
 
 .proMapWrap {
-  margin-top: 12px;
+  margin-top: 14px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -3148,7 +3350,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .proMap {
   width: 100%;
-  height: 190px;
+  height: 240px;
   border: 0;
   display: block;
 }
@@ -3156,34 +3358,36 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .proMapOpen {
   display: block;
   text-align: center;
-  padding: 10px;
+  padding: 12px;
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
+  background: var(--surface-subtle);
 }
 
 .proBottom,
 .rdmConfirmActions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 12px;
+  margin-top: 22px;
 }
 
 .cropHelp {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin: 0 0 14px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 18px;
 }
 
 .cropStage {
-  width: min(300px, 100%);
+  width: min(360px, 78vw);
   aspect-ratio: 1;
-  margin: 0 auto 14px;
+  margin: 0 auto 18px;
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--accent);
-  background: #080D12;
+  background: #090A0D;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
   touch-action: none;
 }
 
@@ -3193,20 +3397,40 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   display: block;
 }
 
+#cropZoom {
+  accent-color: var(--accent);
+  padding: 0;
+  min-height: 36px;
+}
+
 .light {
   position: relative;
-  width: min(920px, 94vw);
-  height: min(86vh, 860px);
+  width: 100%;
+  height: 100dvh;
+  padding: clamp(18px, 4vw, 48px);
+  background: rgba(6, 8, 12, 0.96);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
+.light .close {
+  position: fixed;
+  top: clamp(14px, 3vw, 24px);
+  right: clamp(14px, 3vw, 28px);
+  margin-bottom: 0;
+  background: rgba(20, 22, 28, 0.88);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
 .light img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 96vw;
+  max-height: 90dvh;
   border-radius: var(--radius-md);
   object-fit: contain;
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.68);
 }
 
 #toast {
@@ -3286,6 +3510,21 @@ footer b {
 /* ==========================================================================
    Responsive Breakpoints (Mobile Touch Ergonomics <=15% Sticky Cap)
    ========================================================================== */
+
+@media (min-width: 1280px) {
+  .honours,
+  .socialGrid,
+  .gallery,
+  .statsGrid,
+  .leaderGrid,
+  .adminGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .adminPlayerGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 900px) {
   .honours,
@@ -3401,16 +3640,16 @@ footer b {
   }
 
   .hero {
-    min-height: 400px;
-    padding: 26px 20px;
+    min-height: clamp(460px, 74vh, 640px);
+    padding: 32px 20px;
   }
 
   .heroScrim {
     background: linear-gradient(
       180deg,
-      rgba(6, 12, 16, 0.72) 0%,
-      rgba(6, 12, 16, 0.90) 55%,
-      rgba(6, 12, 16, 0.96) 100%
+      rgba(10, 8, 10, 0.72) 0%,
+      rgba(10, 10, 14, 0.88) 55%,
+      rgba(8, 9, 12, 0.97) 100%
     );
   }
 
@@ -3428,6 +3667,8 @@ footer b {
   .proInfoGrid,
   .proGrid,
   .v62Grid,
+  .rdmUnifiedFields,
+  .profileDownloadChoices,
   .adminPlayerGrid,
   .brandAdminGrid,
   .adminPlayerActions,
@@ -3481,7 +3722,8 @@ footer b {
 
   .proWide,
   .v62Grid .full,
-  .proFull {
+  .proFull,
+  .rdmUnifiedFields label:has(textarea) {
     grid-column: auto;
   }
 }

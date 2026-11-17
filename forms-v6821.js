@@ -135,3 +135,18 @@ setTimeout(()=>{window.render?.();window.v6Tournaments?.()},1200);
   document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{window.rdmHardRenderTournaments();document.querySelectorAll('#matchList .proDataCard').forEach(c=>c.classList.add('rdmHardMiniMatch'))},500)});
   obs.observe(document.documentElement,{subtree:true,childList:true});
 })();
+
+if(!window.__rdmEscModalBound){
+  window.__rdmEscModalBound=true;
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Escape')return;
+    const open=[...document.querySelectorAll('.modal.show')];
+    const top=open[open.length-1];
+    if(!top)return;
+    const closeBtn=top.querySelector('.close');
+    if(closeBtn){closeBtn.click();return;}
+    if(['editor','cropModal','lightbox','publicProfileModal','adminPlayerProfileModal'].includes(top.id))top.classList.remove('show');
+    else top.remove();
+  });
+}
+
