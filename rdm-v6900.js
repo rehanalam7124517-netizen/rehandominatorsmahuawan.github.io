@@ -5,22 +5,20 @@
   function player(name){return (window.D&&Array.isArray(D.players))?D.players.find(function(p){return String(p.name||'').trim().toUpperCase()===name}):null}
   function validPlayerImage(src){
     src=String(src||'').trim();
-    if(!src)return '';
-    /* Never show the team logo as a Captain/VC profile photo. */
-    if(/(?:^|\/)assets\/(?:logo\.jpg|rdm-logo\.png|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+|images\/rdm_(?:crest_emblem|official_crest)_[^?#]+)(?:[?#].*)?$/i.test(src))return '';
+    if(!src||/^data:image\/svg\+xml/i.test(src))return '';
+    if(/(?:^|\/)assets\/(?:logo\.jpg|aistudio\/CRICKET_YOUR_TAGLINE_HERE-[^?#]+|images\/rdm_(?:crest_emblem|official_crest)_[^?#]+)(?:[?#].*)?$/i.test(src))return '';
     if(/(?:^|\/)(?:pwa-(?:192x192|512x512|maskable-512x512)|apple-touch-icon|assets\/favicon-(?:48|192|512))\.png(?:[?#].*)?$/i.test(src))return '';
     return src;
   }
-  function initials(name){return String(name||'RDM').split(/\s+/).filter(Boolean).slice(0,2).map(function(x){return x[0]}).join('').toUpperCase()}
+  function fallbackLogo(){return (typeof window.rdmDefaultPlayerLogo==='function'?window.rdmDefaultPlayerLogo():'assets/rdm-logo.png?v=7400')}
   function setLeader(p,prefix,fallback){
     if(!p)return;
     var im=document.getElementById(prefix+'Image'),n=document.getElementById(prefix+'Name'),d=document.getElementById(prefix+'Detail');
     if(im){
-      var src=validPlayerImage(p.image)||validPlayerImage(fallback);
-      if(src){im.hidden=false;im.src=src;im.removeAttribute('data-no-player-photo')}
-      else{im.hidden=true;im.removeAttribute('src');im.setAttribute('data-no-player-photo','1')}
+      var src=validPlayerImage(p.image)||validPlayerImage(fallback)||fallbackLogo();
+      im.hidden=false;im.src=src;im.removeAttribute('data-no-player-photo');
       var card=im.closest('.leadCard');
-      if(card){var ph=card.querySelector('.leaderInitials');if(!src){if(!ph){ph=document.createElement('div');ph.className='leaderInitials';im.insertAdjacentElement('afterend',ph)}ph.textContent=initials(p.name);ph.hidden=false}else if(ph){ph.hidden=true}}
+      if(card){var ph=card.querySelector('.leaderInitials');if(ph)ph.hidden=true;}
     }
     if(n)n.textContent=m(p.name);
     if(d)d.textContent=m([p.role,p.detail].filter(Boolean).join(' • '));

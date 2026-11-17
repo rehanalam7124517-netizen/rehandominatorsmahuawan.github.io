@@ -46,7 +46,7 @@
   box.innerHTML =
     '<div class="sectionHead"><div><span>Player Manager</span><h2>All Player Profiles</h2><p>Open &amp; edit one player at a time</p></div></div>' +
     '<div class="adminPlayerGrid">' +
-    D.players.map(p => `<button type="button" onclick="adminOpenPlayerProfile('${p.id}')"><img src="${p.image || '/assets/rdm-logo.png'}" alt="${p.name}"><span><b>${mini(p.name)}</b><small>${mini(typeof playerCode === 'function' ? playerCode(p.id) : p.id)}</small></span><i>›</i></button>`).join('') +
+    D.players.map(p => `<button type="button" onclick="adminOpenPlayerProfile('${p.id}')"><img src="${p.image || 'assets/rdm-logo.png?v=7400'}" onerror="this.onerror=null;this.src='assets/rdm-logo.png?v=7400'" alt="${p.name}"><span><b>${mini(p.name)}</b><small>${mini(typeof playerCode === 'function' ? playerCode(p.id) : p.id)}</small></span><i>›</i></button>`).join('') +
     '</div>';
 
   let linksBox = document.getElementById('adminAccessLinksBox');

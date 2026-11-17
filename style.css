@@ -791,8 +791,8 @@ body.admin .adminOnly {
   border-radius: 50%;
   flex: 0 0 68px;
   object-fit: cover;
-  border: 2px solid var(--border-strong);
-  background: var(--surface-subtle);
+  border: 2px solid var(--accent);
+  background: #9E9E9E;
 }
 
 .leadCard.captain img,
@@ -1245,8 +1245,8 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   height: 96px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--gold);
-  background: #0F241C;
+  border: 2px solid var(--accent);
+  background: #9E9E9E;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
   margin: 0;
 }
@@ -2334,7 +2334,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--accent);
-  background: var(--surface-subtle);
+  background: #9E9E9E;
   margin: 0 auto 14px;
   display: block;
 }
@@ -2550,6 +2550,8 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
+  background: #9E9E9E;
+  border: 1.5px solid var(--accent);
   flex-shrink: 0;
 }
 
@@ -2575,7 +2577,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 
 .adminPlayerActions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: 14px;
 }

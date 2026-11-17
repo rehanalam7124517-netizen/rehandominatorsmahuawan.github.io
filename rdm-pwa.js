@@ -2,7 +2,7 @@
   'use strict';
   const standalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js?v=7300').catch(console.warn));
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7400').catch(console.warn));
   }
 
   let promptEvent = null;
@@ -56,7 +56,7 @@
     m.innerHTML = `<div class="dialog rdmUnifiedDialog installGuideDialog" role="dialog" aria-modal="true">
       <button class="close" type="button" aria-label="Close">×</button>
       <div class="installGuideHead">
-        <img src="/assets/rdm-logo.png?v=7300" alt="RDM Logo">
+        <img src="assets/rdm-logo.png?v=7400" alt="RDM Logo">
         <div>
           <span class="sectionKicker">Progressive Web App</span>
           <h2>${title}</h2>

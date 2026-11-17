@@ -1,13 +1,13 @@
-const CACHE = 'rdm-v7300';
+const CACHE = 'rdm-v7400';
 const CORE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/rdm-v6890-fix.css',
-  '/assets/rdm-logo.png',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/apple-touch-icon.png'
+  './',
+  'index.html',
+  'style.css',
+  'rdm-v6890-fix.css',
+  'assets/rdm-logo.png',
+  'pwa-192x192.png',
+  'pwa-512x512.png',
+  'apple-touch-icon.png'
 ];
 self.addEventListener('install', e =>
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()))

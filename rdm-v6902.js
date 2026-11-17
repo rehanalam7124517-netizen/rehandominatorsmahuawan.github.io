@@ -8,13 +8,20 @@ let brand={logo:'',favicon:'',appIcon:'',socialPreview:'',brandVersion:''};
 const LEGACY_LOGO=/(?:logo\.jpg|CRICKET_YOUR_TAGLINE_HERE|rdm_crest_emblem)/i;
 try{const saved=JSON.parse(localStorage.getItem(BRAND_LOCAL_KEY)||'null');if(saved&&typeof saved==='object'){brand={...brand,...saved};if(LEGACY_LOGO.test(brand.logo||''))brand.logo='';}}catch{}
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function initials(name){return String(name||'RDM').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'RDM'}
-function placeholder(name){const t=initials(name);return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="128" fill="#14171F"/><circle cx="128" cy="128" r="118" fill="none" stroke="#EF4444" stroke-width="5"/><text x="128" y="146" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-size="68" font-weight="700" fill="#F8FAFC">${t}</text></svg>`)}
-function cleanPlayers(){if(!window.D?.players)return;D.players.forEach(p=>{if(!p.image||STATIC_PLAYER.test(String(p.image)))p.image=placeholder(p.name)})}
+const DEFAULT_LOGO='assets/rdm-logo.png?v=7400';
+const DEFAULT_FAVICON='pwa-192x192.png';
+const DEFAULT_APPLE='apple-touch-icon.png';
+function isMissingPlayerPhoto(src){
+  const s=String(src||'').trim();
+  return !s||STATIC_PLAYER.test(s)||/^data:image\/svg\+xml/i.test(s)||LEGACY_LOGO.test(s);
+}
+function cleanPlayers(){
+  if(!window.D?.players)return;
+  const fallback=(brand.logo&&!LEGACY_LOGO.test(brand.logo))?brand.logo:DEFAULT_LOGO;
+  D.players.forEach(p=>{if(isMissingPlayerPhoto(p.image))p.image=fallback});
+}
 window.rdmCleanStaticPlayerImages=cleanPlayers;
-const DEFAULT_LOGO='/assets/rdm-logo.png?v=7300';
-const DEFAULT_FAVICON='/pwa-192x192.png';
-const DEFAULT_APPLE='/apple-touch-icon.png';
+window.rdmDefaultPlayerLogo=()=>((brand.logo&&!LEGACY_LOGO.test(brand.logo))?brand.logo:DEFAULT_LOGO);
 function applyBrand(){
   const cleanLogo=(brand.logo&&!LEGACY_LOGO.test(brand.logo))?brand.logo:DEFAULT_LOGO;
   const logo=cleanLogo, fav=brand.favicon||brand.appIcon||cleanLogo||DEFAULT_FAVICON, app=brand.appIcon||cleanLogo||DEFAULT_APPLE, social=brand.socialPreview||logo;
