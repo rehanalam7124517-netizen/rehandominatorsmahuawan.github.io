@@ -116,7 +116,7 @@ window.v6EditRecord=v6AddRecord;
 function v6Tournaments(){const t=document.getElementById('tournamentList');if(t)t.innerHTML=V6.tournaments.length?V6.tournaments.map(x=>`<article class="card"><h3>🏆 ${mini(x.name)}</h3><p>${mini(x.season||'')} • ${mini(x.position||'')}</p><p class="preserveLines">${mini(x.fixtures||'')}</p>${rdmAdmin()?`<button class="tinyBtn" onclick="v6AddTournament('${x._docId}')">✎ ᴇᴅɪᴛ</button> <button class="tinyBtn deleteBtn" onclick="v6Delete('${V6COL.tournaments}','${x._docId}')">🗑 ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join(''):'<div class="empty">ɴᴏ ᴛᴏᴜʀɴᴀᴍᴇɴᴛ ᴀᴅᴅᴇᴅ</div>';const o=document.getElementById('opponentList');if(o)o.innerHTML=V6.opponents.length?V6.opponents.map(x=>`<article class="card"><h3>${mini(x.name)}</h3><p>ʜ2ʜ • ${x.played||0} ᴍᴀᴛᴄʜᴇꜱ • ${x.won||0} ᴡᴏɴ • ${x.lost||0} ʟᴏꜱᴛ</p>${rdmAdmin()?`<button class="tinyBtn" onclick="v6AddOpponent('${x._docId}')">✎ ᴇᴅɪᴛ</button> <button class="tinyBtn deleteBtn" onclick="v6Delete('${V6COL.opponents}','${x._docId}')">🗑 ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join(''):'<div class="empty">ɴᴏ ᴏᴘᴘᴏɴᴇɴᴛ ᴀᴅᴅᴇᴅ</div>'}
 async function v6AddTournament(id){if(!rdmAdmin())return;const x=V6.tournaments.find(z=>z._docId===id)||{};const name=xp('Tournament name',x.name||'');if(!name)return;const season=xp('Season / Year',x.season||'');const position=xp('Final position / status',x.position||'');const fixtures=xp('Fixtures / points / notes (use new lines)',x.fixtures||'');const d={name,season,position,fixtures,updatedAt:rdmStamp(),createdMs:x.createdMs||Date.now()};id?await rdmDB.collection(V6COL.tournaments).doc(id).set(d,{merge:true}):await rdmDB.collection(V6COL.tournaments).add(d);await v6load()}
 async function v6AddOpponent(id){if(!rdmAdmin())return;const x=V6.opponents.find(z=>z._docId===id)||{};const name=xp('Opponent team name',x.name||'');if(!name)return;const played=xnum(xp('Matches played',x.played||0)),won=xnum(xp('RDM wins',x.won||0)),lost=xnum(xp('RDM losses',x.lost||0));const d={name,played,won,lost,updatedAt:rdmStamp(),createdMs:x.createdMs||Date.now()};id?await rdmDB.collection(V6COL.opponents).doc(id).set(d,{merge:true}):await rdmDB.collection(V6COL.opponents).add(d);await v6load()}
-async function v6Delete(c,id){if(!rdmAdmin())return;const run=async()=>{try{await rdmDB.collection(c).doc(id).delete()}catch{}const map={TeamRecords:'records',Tournaments:'tournaments',Opponents:'opponents'};const k=map[c];if(k){V6[k]=V6[k].filter(x=>x._docId!==id);v6SaveOverride(k,V6[k]);}v6render();window.rdmHardRenderTournaments?.();toast('Deleted')};if(typeof window.rdmConfirmModal==='function')return window.rdmConfirmModal('DELETE ITEM','THIS ACTION CANNOT BE UNDONE.',run);return run()}
+async function v6Delete(c,id){if(!rdmAdmin())return;const run=async()=>{try{await rdmDB.collection(c).doc(id).delete()}catch{}const map={TeamRecords:'records',Tournaments:'tournaments',Opponents:'opponents'};const k=map[c];if(k){V6[k]=V6[k].filter(x=>x._docId!==id);v6SaveOverride(k,V6[k]);}v6render();window.rdmHardRenderTournaments?.();window.refreshAdminSectionManager?.();toast('Deleted')};if(typeof window.rdmConfirmModal==='function')return window.rdmConfirmModal('DELETE ITEM','THIS ACTION CANNOT BE UNDONE.',run);return run()}
 function v6Search(){
   const box=document.getElementById('players');
   if(!box)return;
@@ -246,45 +246,202 @@ function v61MatchDetails(){
     if(bits.length)el.insertAdjacentHTML('beforeend',`<div class="matchDetails v61extra">${bits.join('')}</div>`);
   });
 }
+let _rdmCurrentAdminManager=null;
+function admEsc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function buildAdminManagerHtml(type){
+  const listWrap=(rows,empty)=>`<div class="adminManagerList">${rows.length?rows.join(''):`<div class="empty">${empty}</div>`}</div>`;
+  if(type==='matches'){
+    const arr=(typeof D!=='undefined'&&Array.isArray(D.matches))?D.matches:[];
+    return {
+      title:'Manage Matches & Scorecards',
+      sub:'Add, edit scorecards, posters, toss, FOW, or delete matches',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="rdmProAddMatch()">＋ Upcoming Match</button><button type="button" class="secondary" onclick="addScorecard()">＋ Scorecard / Result</button></div>`,
+      body:listWrap(arr.map((m,i)=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>RDM vs ${mini(m.opponent||'Opponent')}</strong><small>${admEsc([m.matchStatus||m.status||'MATCH',m.date,m.venueName||m.venue].filter(Boolean).join(' · '))}${m.ourScore||m.oppScore?` · ${admEsc(m.ourScore||'—')} vs ${admEsc(m.oppScore||'—')}`:''}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="rdmProAddMatch('${admEsc(m._docId)}')">✎ Edit</button><button type="button" class="tinyBtn" onclick="addScorecard('${admEsc(m._docId)}')">📊 Scorecard</button><button type="button" class="tinyBtn" onclick="v6EditMatch('${admEsc(m._docId)}')">📝 Batting/Bowling</button><button type="button" class="tinyBtn" onclick="v6Poster('${admEsc(m._docId)}')">▣ Poster</button><button type="button" class="tinyBtn deleteBtn" onclick="removeItem('matches',${i})">🗑 Delete</button></div></div>`),'No matches added yet')
+    };
+  }
+  if(type==='news'){
+    const arr=(typeof D!=='undefined'&&Array.isArray(D.news))?[...D.news].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdMs||0)-(a.createdMs||0)):[];
+    return {
+      title:'Manage News & Announcements',
+      sub:'Create, edit, pin to Home, or remove announcements',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="openEdit('news')">＋ Add News</button></div>`,
+      body:listWrap(arr.map(n=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${n.pinned?'📌 ':''}${mini(n.title||'Announcement')}</strong><small>${admEsc(String(n.text||'').slice(0,110))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="editNews('${admEsc(n._docId)}')">✎ Edit</button><button type="button" class="tinyBtn" onclick="togglePin('${admEsc(n._docId)}',${!n.pinned})">${n.pinned?'Unpin':'📌 Pin'}</button><button type="button" class="tinyBtn deleteBtn" onclick="xdelete('News','${admEsc(n._docId)}')">🗑 Delete</button></div></div>`),'No news added yet')
+    };
+  }
+  if(type==='updates'){
+    const arr=(typeof RDM_UPDATES!=='undefined'&&Array.isArray(RDM_UPDATES))?RDM_UPDATES:[];
+    return {
+      title:'Manage Official Updates',
+      sub:'Publish updates, pin important notices, edit or delete entries',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="addUpdate()">＋ Add Update</button></div>`,
+      body:listWrap(arr.map(u=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${u.pinned?'📌 ':''}${mini(u.title||'Update')}</strong><small>${admEsc([u.category||'WEBSITE',u.date].filter(Boolean).join(' · '))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="editUpdate('${admEsc(u._docId)}')">✎ Edit</button><button type="button" class="tinyBtn" onclick="pinUpdate('${admEsc(u._docId)}',${!u.pinned})">${u.pinned?'Unpin':'📌 Pin'}</button><button type="button" class="tinyBtn deleteBtn" onclick="deleteUpdate('${admEsc(u._docId)}')">🗑 Delete</button></div></div>`),'No updates yet')
+    };
+  }
+  if(type==='stats'){
+    const players=(typeof D!=='undefined'&&Array.isArray(D.players))?D.players:[];
+    const stats=(typeof XD!=='undefined'&&Array.isArray(XD.stats))?XD.stats:[];
+    return {
+      title:'Player Stats & Ranking',
+      sub:'Update individual career stats for every squad member',
+      top:'',
+      body:listWrap(players.map(p=>{const s=stats.find(z=>z.playerId===p.id)||{};return `<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(p.name)}</strong><small>${admEsc(p.id)} · Matches: ${Number(s.matches||0)} · Runs: ${Number(s.runs||0)} · Wickets: ${Number(s.wickets||0)}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="editStats('${admEsc(p.id)}')">📊 Edit Stats</button></div></div>`}),'No players found')
+    };
+  }
+  if(type==='achievements'){
+    const arr=(typeof XD!=='undefined'&&Array.isArray(XD.achievements))?XD.achievements:[];
+    return {
+      title:'Manage Awards & Achievements',
+      sub:'Add POTM, trophies, and player milestones',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="addAchievement()">＋ Add Achievement</button></div>`,
+      body:listWrap(arr.map(a=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>🏆 ${mini(a.title||'Award')}</strong><small>${admEsc([a.playerName||'TEAM',a.detail].filter(Boolean).join(' · '))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="v6EditAchievement('${admEsc(a._docId)}')">✎ Edit</button><button type="button" class="tinyBtn deleteBtn" onclick="xdelete('Achievements','${admEsc(a._docId)}')">🗑 Delete</button></div></div>`),'No achievements yet')
+    };
+  }
+  if(type==='records'){
+    const arr=(typeof V6!=='undefined'&&Array.isArray(V6.records))?V6.records:[];
+    return {
+      title:'Manage Club Records',
+      sub:'Manage Player, Team, and Partnership records',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="v63AddPlayerRecord()">＋ Player Record</button><button type="button" class="secondary" onclick="v63AddTeamRecord()">＋ Team Record</button><button type="button" class="secondary" onclick="v63AddPartnershipRecord()">＋ Partnership</button></div>`,
+      body:listWrap(arr.map(r=>{const fn=v63Type(r)==='PARTNERSHIP'?'v63AddPartnershipRecord':(v63Type(r)==='PLAYER'?'v63AddPlayerRecord':'v63AddTeamRecord');return `<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(r.title||'Record')}</strong><small>${admEsc([v63Type(r),r.value,r.player,r.season].filter(Boolean).join(' · '))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="${fn}('${admEsc(r._docId)}')">✎ Edit</button><button type="button" class="tinyBtn deleteBtn" onclick="v6Delete('${V6COL.records}','${admEsc(r._docId)}')">🗑 Delete</button></div></div>`}),'No manual records yet')
+    };
+  }
+  if(type==='tournaments'){
+    const arr=(typeof V6!=='undefined'&&Array.isArray(V6.tournaments))?V6.tournaments:[];
+    return {
+      title:'Manage Tournaments & Fixtures',
+      sub:'Add, update standings, dates, venue maps, or delete tournaments',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="v6AddTournament()">＋ Add Tournament</button></div>`,
+      body:listWrap(arr.map(t=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>🏆 ${mini(t.name||'Tournament')}</strong><small>${admEsc([t.season,t.status,t.position].filter(Boolean).join(' · '))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="v6AddTournament('${admEsc(t._docId)}')">✎ Edit</button><button type="button" class="tinyBtn deleteBtn" onclick="v6Delete('${V6COL.tournaments}','${admEsc(t._docId)}')">🗑 Delete</button></div></div>`),'No tournaments yet')
+    };
+  }
+  if(type==='opponents'){
+    const arr=(typeof V6!=='undefined'&&Array.isArray(V6.opponents))?V6.opponents:[];
+    return {
+      title:'Manage Opponents & Head-to-Head',
+      sub:'Track played, won, and lost records against rivals',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="v6AddOpponent()">＋ Add Opponent</button></div>`,
+      body:listWrap(arr.map(o=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(o.name||'Opponent')}</strong><small>${o.played||0} Played · ${o.won||0} Won · ${o.lost||0} Lost</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="v6AddOpponent('${admEsc(o._docId)}')">✎ Edit</button><button type="button" class="tinyBtn deleteBtn" onclick="v6Delete('${V6COL.opponents}','${admEsc(o._docId)}')">🗑 Delete</button></div></div>`),'No opponents yet')
+    };
+  }
+  if(type==='lineup'){
+    const arr=(typeof XD!=='undefined'&&Array.isArray(XD.lineups))?XD.lineups:[];
+    return {
+      title:'Manage Playing XI & Substitutes',
+      sub:'Publish starting 11, swap players with substitutes, or remove lineups',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="addLineup()">＋ Publish Playing XI</button></div>`,
+      body:listWrap(arr.map(l=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(l.title||'PLAYING XI')}</strong><small>${admEsc([l.match,(l.players||[]).length+' XI',(l.subs||[]).length+' Subs'].filter(Boolean).join(' · '))}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="rdmSwapLineupPlayer('${admEsc(l._docId)}')">⇄ Swap XI / Sub</button><button type="button" class="tinyBtn deleteBtn" onclick="xdelete('PlayingXI','${admEsc(l._docId)}')">🗑 Delete</button></div></div>`),'No Playing XI published yet')
+    };
+  }
+  if(type==='availability'){
+    const players=(typeof D!=='undefined'&&Array.isArray(D.players))?D.players:[];
+    const av=(typeof XD!=='undefined'&&Array.isArray(XD.availability))?XD.availability:[];
+    return {
+      title:'Manage Player Availability',
+      sub:'Update matchday availability for each squad player',
+      top:'',
+      body:listWrap(players.map(p=>{const a=av.find(z=>z.playerId===p.id);const st=a?.status||'NOT SET';return `<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(p.name)}</strong><small>${admEsc(p.id)} · Status: ${admEsc(st)}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="setAvailability('${admEsc(p.id)}')">✓ Change Status</button></div></div>`}),'No players found')
+    };
+  }
+  if(type==='honours'){
+    const arr=(typeof D!=='undefined'&&Array.isArray(D.honours))?D.honours:[];
+    return {
+      title:'Manage Club Honours & Trophies',
+      sub:'Add or remove club silverware',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="openEdit('honour')">＋ Add Honour</button></div>`,
+      body:listWrap(arr.map((h,i)=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>🏆 ${admEsc(h.year)} · ${mini(h.title||'Honour')}</strong><small>${admEsc(h.sub||'')}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn deleteBtn" onclick="removeItem('honours',${i})">🗑 Delete</button></div></div>`),'No honours added yet')
+    };
+  }
+  if(type==='gallery'){
+    const arr=(typeof D!=='undefined'&&Array.isArray(D.gallery))?D.gallery:[];
+    return {
+      title:'Manage Club Gallery',
+      sub:'Upload new photos, change albums, or delete items',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="openEdit('gallery')">＋ Add Gallery Photo</button></div>`,
+      body:listWrap(arr.map(g=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(g.caption||'RDM MEMORY')}</strong><small>${admEsc(g.album||'MEMORIES')}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="moveGalleryPhoto?.('${admEsc(g._docId)}','${admEsc((g.album||'MEMORIES').toUpperCase())}')">↪ Move</button><button type="button" class="tinyBtn deleteBtn" onclick="xdelete('Gallery','${admEsc(g._docId)}')">🗑 Delete</button></div></div>`),'No gallery photos yet')
+    };
+  }
+  if(type==='socials'){
+    const arr=(typeof D!=='undefined'&&Array.isArray(D.socials))?D.socials:[];
+    return {
+      title:'Manage Official Social Links',
+      sub:'Add, edit, or delete club social media channels',
+      top:`<div class="adminManagerTopBtns"><button type="button" class="primary" onclick="openEdit('social')">＋ Add Social Link</button></div>`,
+      body:listWrap(arr.map((s,i)=>`<div class="adminManagerRow"><div class="adminManagerMeta"><strong>${mini(s.displayName||s.name||'Social')}</strong><small>${admEsc(s.url||'Link not set')}</small></div><div class="adminManagerBtns"><button type="button" class="tinyBtn" onclick="editSocial(${i})">✎ Edit</button><button type="button" class="tinyBtn deleteBtn" onclick="removeItem('socials',${i})">🗑 Delete</button></div></div>`),'No social links yet')
+    };
+  }
+  return null;
+}
+window.openAdminSectionManager=function(type){
+  if(!rdmAdmin())return toast?.('Admin only');
+  const spec=buildAdminManagerHtml(type);
+  if(!spec)return;
+  _rdmCurrentAdminManager=type;
+  let m=document.getElementById('rdmAdminManagerModal');
+  if(!m){
+    m=document.createElement('div');
+    m.id='rdmAdminManagerModal';
+    m.className='modal show rdmUnifiedModal';
+    document.body.appendChild(m);
+  }
+  m.className='modal show rdmUnifiedModal';
+  m.innerHTML=`<div class="dialog publicDialog rdmAdminManagerDialog" role="dialog" aria-modal="true"><button class="close" type="button" aria-label="Close">×</button><div class="adminManagerHead"><span class="sectionKicker">Admin Manager</span><h2>${spec.title}</h2><p>${spec.sub}</p></div>${spec.top}${spec.body}</div>`;
+  const close=()=>{_rdmCurrentAdminManager=null;m.remove()};
+  m.querySelector('.close').onclick=close;
+  m.onclick=e=>{if(e.target===m)close()};
+};
+window.refreshAdminSectionManager=function(){
+  if(!_rdmCurrentAdminManager)return;
+  if(!document.getElementById('rdmAdminManagerModal')?.classList.contains('show')){_rdmCurrentAdminManager=null;return}
+  window.openAdminSectionManager(_rdmCurrentAdminManager);
+};
+
 function v61Admin(force=false){
   if(!rdmAdmin())return;
   const a=document.getElementById('adminBody'); if(!a)return;
   if(!force&&a.dataset.v61Ready==='1')return;
   a.dataset.v61Ready='1';
-  a.innerHTML=`<div class="adminSessionBar"><div><strong>Admin Direct Link Active</strong><span>RDM Official Club Management</span></div><a class="tinyBtn" href="${location.pathname}">Public View</a></div><div class="adminGrid">
-  <button class="primary" data-add="match">＋ Upcoming Match</button>
-  <button class="primary" onclick="addScorecard()">＋ Scorecard / Result</button>
-  <button class="primary" onclick="go('matches')">✎ Toss / Scorecard / POTM</button>
-  <button class="primary" onclick="go('matches')">🤝 Partnerships / FOW</button>
-  <button class="primary" onclick="go('matches')">▣ Match Poster / Venue Map</button>
-  <button class="primary" data-add="news">＋ News / Notification</button>
-  <button class="primary" onclick="go('news')">📌 Pin / Unpin News</button>
-  <button class="primary" data-add="player">＋ Add Player</button>
-  <button class="primary" onclick="go('records')">✎ Player Stats &amp; Ranking</button>
-  <button class="primary" onclick="addAchievement()">＋ Award / Achievement</button>
-  <button class="primary" onclick="v63AddPlayerRecord()">＋ Player Record</button>
-  <button class="primary" onclick="v63AddTeamRecord()">＋ Team Record</button>
-  <button class="primary" onclick="v63AddPartnershipRecord()">＋ Partnership Record</button>
-  <button class="primary" onclick="v6AddTournament()">＋ Tournament / Fixtures</button>
-  <button class="primary" onclick="v6AddOpponent()">＋ Opponent / H2H</button>
-  <button class="primary" onclick="addLineup()">＋ Publish Playing XI</button>
-  <button class="primary" onclick="go('lineup')">✎ Player Availability</button>
-  <button class="primary" data-add="honour">＋ Honour</button>
-  <button class="primary" data-add="gallery">＋ Gallery Photo</button>
-  <button class="primary" data-add="social">＋ Social Link</button>
-  <button class="primary manageUpdatesBtn" onclick="go('updates')">＋ Manage Updates</button>
-  <button class="primary" onclick="document.querySelector('.brandAdminBox')?.scrollIntoView({behavior:'smooth',block:'start'})">Manage Logo &amp; Branding</button>
-  <button class="primary" onclick="document.getElementById('adminAccessLinksBox')?.scrollIntoView({behavior:'smooth',block:'start'})">Private Access Links</button>
-  </div><p class="adminHint">All club features are managed by Admin. Edit and delete actions also appear directly on each section page.</p>`;
+  a.innerHTML=`<div class="adminSessionBar"><div><strong>Admin Direct Link Active</strong><span>RDM Official Club Management Portal</span></div><div class="adminSessionActions"><button type="button" class="tinyBtn" id="adminInstallAppBtn" data-rdm-install-btn>📲 Install Admin App</button></div></div><div class="adminGrid">
+  <button type="button" class="primary" data-add="match">＋ Upcoming Match</button>
+  <button type="button" class="primary" onclick="addScorecard()">＋ Scorecard / Result</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('matches')">✎ Manage Matches &amp; Scorecards</button>
+  <button type="button" class="primary" data-add="news">＋ News / Notification</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('news')">📌 Manage News &amp; Pin</button>
+  <button type="button" class="primary" data-add="player">＋ Add Player</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('stats')">✎ Player Stats &amp; Ranking</button>
+  <button type="button" class="primary" onclick="addAchievement()">＋ Award / Achievement</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('achievements')">🏆 Manage Achievements</button>
+  <button type="button" class="primary" onclick="v63AddPlayerRecord()">＋ Player Record</button>
+  <button type="button" class="primary" onclick="v63AddTeamRecord()">＋ Team Record</button>
+  <button type="button" class="primary" onclick="v63AddPartnershipRecord()">＋ Partnership Record</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('records')">📊 Manage Club Records</button>
+  <button type="button" class="primary" onclick="v6AddTournament()">＋ Tournament / Fixtures</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('tournaments')">🏆 Manage Tournaments</button>
+  <button type="button" class="primary" onclick="v6AddOpponent()">＋ Opponent / H2H</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('opponents')">⚔ Manage Opponents / H2H</button>
+  <button type="button" class="primary" onclick="addLineup()">＋ Publish Playing XI</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('lineup')">🏏 Manage Playing XI &amp; Swap</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('availability')">✎ Player Availability</button>
+  <button type="button" class="primary" data-add="honour">＋ Honour</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('honours')">🎖 Manage Honours</button>
+  <button type="button" class="primary" data-add="gallery">＋ Gallery Photo</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('gallery')">🖼 Manage Gallery</button>
+  <button type="button" class="primary" data-add="social">＋ Social Link</button>
+  <button type="button" class="primary" onclick="openAdminSectionManager('socials')">🔗 Manage Socials</button>
+  <button type="button" class="primary manageUpdatesBtn" onclick="openAdminSectionManager('updates')">＋ Manage Updates</button>
+  <button type="button" class="primary" onclick="document.querySelector('.brandAdminBox')?.scrollIntoView({behavior:'smooth',block:'start'})">Manage Logo &amp; Branding</button>
+  <button type="button" class="primary" onclick="document.getElementById('adminAccessLinksBox')?.scrollIntoView({behavior:'smooth',block:'start'})">Private Access Links</button>
+  </div><p class="adminHint">Dedicated Admin-Only Portal. Public visitors cannot edit anything, and all club management runs directly inside this panel.</p>`;
   if(typeof bindAdds==='function')bindAdds();
   window.rdmInjectPlayerManager?.();
   window.rdmInjectBrandAdmin?.();
+  window.rdmSyncInstallButtons?.();
 }
 const v61OldRenderAdmin=window.renderAdmin;window.renderAdmin=function(){const a=document.getElementById('adminBody');if(a)delete a.dataset.v61Ready;if(v61OldRenderAdmin)v61OldRenderAdmin();if(rdmAdmin())setTimeout(()=>v61Admin(true),0)};
 setInterval(()=>{v61Home();v61MatchDetails();if(document.body.classList.contains('admin')&&document.getElementById('admin')?.classList.contains('active'))v61Admin(false)},1500);
 
 /* V6.2 - structured Records & Tournaments */
 function v62Modal(title, fields, values, onSave){
+ if(!rdmAdmin())return toast?.('Admin only');
  let m=document.getElementById('v62Modal'); if(m)m.remove();
  m=document.createElement('div');m.id='v62Modal';m.className='modal show';
  const html=fields.map(f=>{const val=esc(values[f.k]??'');if(f.type==='textarea')return `<label class="${f.full?'full':''}">${f.label}<textarea data-k="${f.k}" placeholder="${esc(f.ph||'')}">${val}</textarea></label>`;if(f.type==='select')return `<label class="${f.full?'full':''}">${f.label}<select data-k="${f.k}">${f.options.map(o=>`<option ${String(values[f.k]||'')===o?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;return `<label class="${f.full?'full':''}">${f.label}<input data-k="${f.k}" type="${f.type||'text'}" value="${val}" placeholder="${esc(f.ph||'')}"></label>`}).join('');
@@ -318,7 +475,7 @@ function v6Records(){
  const map={PLAYER:'playerRecordSection',TEAM:'teamRecordSection',PARTNERSHIP:'partnershipRecordSection',LEADERBOARD:'leaderboardSection'};Object.entries(map).forEach(([t,id])=>{const el=document.getElementById(id);if(el)el.hidden=v6RecordType!==t});
 }
 function v6SetRecordType(t){v6RecordType=t;if(t==='TOURNAMENT'){document.querySelector('[data-page="tournaments"]')?.click();setTimeout(()=>document.getElementById('tournamentList')?.scrollIntoView({behavior:'smooth',block:'start'}),80);return}if(t==='H2H'){document.querySelector('[data-page="tournaments"]')?.click();setTimeout(()=>document.getElementById('opponentList')?.scrollIntoView({behavior:'smooth',block:'start'}),80);return}v6Records()}
-async function v63Save(id,x,d,type){if(!d.title||!d.value){toast('Record name & value required');throw Error('required')}d.recordType=type;d.createdMs=x.createdMs||Date.now();const rec={...x,...d,_docId:id||'loc_'+Date.now()};if(id)Object.assign(x,rec);else V6.records.unshift(rec);v6SaveOverride('records',V6.records);try{id?await rdmDB.collection(V6COL.records).doc(id).set({...d,createdMs:rec.createdMs,updatedAt:rdmStamp()},{merge:true}):await rdmDB.collection(V6COL.records).add({...d,createdMs:rec.createdMs,updatedAt:rdmStamp()})}catch{}v6render();toast('Record saved')}
+async function v63Save(id,x,d,type){if(!rdmAdmin())return toast?.('Admin only');if(!d.title||!d.value){toast('Record name & value required');throw Error('required')}d.recordType=type;d.createdMs=x.createdMs||Date.now();const rec={...x,...d,_docId:id||'loc_'+Date.now()};if(id)Object.assign(x,rec);else V6.records.unshift(rec);v6SaveOverride('records',V6.records);try{id?await rdmDB.collection(V6COL.records).doc(id).set({...d,createdMs:rec.createdMs,updatedAt:rdmStamp()},{merge:true}):await rdmDB.collection(V6COL.records).add({...d,createdMs:rec.createdMs,updatedAt:rdmStamp()})}catch{}v6render();window.refreshAdminSectionManager?.();toast('Record saved')}
 function v63AddPlayerRecord(id){if(!rdmAdmin())return;const x=V6.records.find(z=>z._docId===id)||{};v62Modal(id?'ᴇᴅɪᴛ ᴘʟᴀʏᴇʀ ʀᴇᴄᴏʀᴅ':'ᴀᴅᴅ ᴘʟᴀʏᴇʀ ʀᴇᴄᴏʀᴅ',[{k:'category',label:'ᴛʏᴘᴇ',type:'select',options:['BATTING','BOWLING','FIELDING','ALL-ROUNDER','OTHER']},{k:'season',label:'ꜱᴇᴀꜱᴏɴ / ʏᴇᴀʀ',ph:'2027'},{k:'player',label:'ᴘʟᴀʏᴇʀ',ph:'Rehan Akhtar'},{k:'title',label:'ʀᴇᴄᴏʀᴅ ɴᴀᴍᴇ',ph:'Highest Individual Score',full:true},{k:'value',label:'ʀᴇᴄᴏʀᴅ ᴠᴀʟᴜᴇ',ph:'85 Runs'},{k:'opponent',label:'ᴠꜱ ᴏᴘᴘᴏɴᴇɴᴛ',ph:'Team name'},{k:'date',label:'ᴅᴀᴛᴇ',type:'date'},{k:'note',label:'ɴᴏᴛᴇ',type:'textarea',full:true}],x,d=>v63Save(id,x,d,'PLAYER'))}
 function v63AddTeamRecord(id){if(!rdmAdmin())return;const x=V6.records.find(z=>z._docId===id)||{};v62Modal(id?'ᴇᴅɪᴛ ᴛᴇᴀᴍ ʀᴇᴄᴏʀᴅ':'ᴀᴅᴅ ᴛᴇᴀᴍ ʀᴇᴄᴏʀᴅ',[{k:'category',label:'ᴛʏᴘᴇ',type:'select',options:['TEAM','CHASE','WIN','STREAK','OTHER']},{k:'season',label:'ꜱᴇᴀꜱᴏɴ / ʏᴇᴀʀ',ph:'2027'},{k:'title',label:'ʀᴇᴄᴏʀᴅ ɴᴀᴍᴇ',ph:'Highest Team Score',full:true},{k:'value',label:'ʀᴇᴄᴏʀᴅ ᴠᴀʟᴜᴇ',ph:'185/6'},{k:'opponent',label:'ᴠꜱ ᴏᴘᴘᴏɴᴇɴᴛ',ph:'Team name'},{k:'date',label:'ᴅᴀᴛᴇ',type:'date'},{k:'note',label:'ɴᴏᴛᴇ',type:'textarea',full:true}],x,d=>v63Save(id,x,d,'TEAM'))}
 function v63AddPartnershipRecord(id){if(!rdmAdmin())return;const x=V6.records.find(z=>z._docId===id)||{};v62Modal(id?'ᴇᴅɪᴛ ᴘᴀʀᴛɴᴇʀꜱʜɪᴘ':'ᴀᴅᴅ ᴘᴀʀᴛɴᴇʀꜱʜɪᴘ ʀᴇᴄᴏʀᴅ',[{k:'season',label:'ꜱᴇᴀꜱᴏɴ / ʏᴇᴀʀ',ph:'2027'},{k:'player',label:'ᴘʟᴀʏᴇʀ 1',ph:'Rehan Akhtar'},{k:'player2',label:'ᴘʟᴀʏᴇʀ 2',ph:'Saif Ali'},{k:'wicket',label:'ᴡɪᴄᴋᴇᴛ',ph:'1st Wicket'},{k:'title',label:'ʀᴇᴄᴏʀᴅ ɴᴀᴍᴇ',ph:'Highest Partnership',full:true},{k:'value',label:'ʀᴜɴꜱ',ph:'120 Runs'},{k:'opponent',label:'ᴠꜱ ᴏᴘᴘᴏɴᴇɴᴛ',ph:'Team name'},{k:'date',label:'ᴅᴀᴛᴇ',type:'date'},{k:'note',label:'ɴᴏᴛᴇ',type:'textarea',full:true}],x,d=>{d.category='PARTNERSHIP';return v63Save(id,x,d,'PARTNERSHIP')})}

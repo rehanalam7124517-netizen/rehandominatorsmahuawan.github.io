@@ -35,15 +35,24 @@ const wantsAdmin = key === ADMIN_LINK;
 window.__rdmUrlKeyRole = wantsAdmin ? 'admin' : (requestedPlayer ? 'player' : 'public');
 window.__rdmUrlPlayerId = requestedPlayer;
 
+function setPortal(role){
+  document.documentElement.dataset.rdmPortal=role;
+  if(document.body)document.body.dataset.rdmPortal=role;
+}
+
 if (wantsAdmin) {
   session = { mode: 'admin', realRole: 'admin', playerId: 'RDM001', viaLink: true };
+  setPortal('admin');
 } else if (requestedPlayer) {
   session = { mode: 'player', realRole: 'player', playerId: requestedPlayer, viaLink: true };
+  setPortal('player');
 } else {
   session = null;
+  setPortal('public');
 }
 
 function publicMode(){
+  setPortal('public');
   document.body.classList.remove('admin');
   document.querySelector('#profileNav')?.setAttribute('hidden', '');
   document.querySelector('#adminNav')?.setAttribute('hidden', '');
@@ -51,32 +60,27 @@ function publicMode(){
   window.updateAuthUI?.();
 }
 
-let initialRouted = false;
 function route(){
   if (wantsAdmin) {
     session = { mode: 'admin', realRole: 'admin', playerId: 'RDM001', viaLink: true };
+    setPortal('admin');
     document.body.classList.add('admin');
     document.querySelector('#adminNav')?.removeAttribute('hidden');
     document.querySelector('#profileNav')?.setAttribute('hidden', '');
     updateAuthUI?.();
     render?.();
-    if (!initialRouted) {
-      initialRouted = true;
-      go('admin');
-    }
+    go('admin');
     return;
   }
   if (requestedPlayer) {
     session = { mode: 'player', realRole: 'player', playerId: requestedPlayer, viaLink: true };
+    setPortal('player');
     document.body.classList.remove('admin');
     document.querySelector('#profileNav')?.removeAttribute('hidden');
     document.querySelector('#adminNav')?.setAttribute('hidden', '');
     updateAuthUI?.();
     render?.();
-    if (!initialRouted) {
-      initialRouted = true;
-      go('profile');
-    }
+    go('profile');
     return;
   }
   publicMode();
@@ -90,3 +94,4 @@ if (document.readyState === 'loading') {
   route();
 }
 })();
+

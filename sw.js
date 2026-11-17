@@ -1,4 +1,4 @@
-const CACHE = 'rdm-v7500';
+const CACHE = 'rdm-v7600';
 const CORE = [
   './',
   'index.html',
@@ -32,6 +32,6 @@ self.addEventListener('fetch', e => {
         }
         return r;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('/index.html')))
+      .catch(() => caches.match(e.request).then(r => r || caches.match('./') || caches.match('index.html')))
   );
 });

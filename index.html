@@ -17,15 +17,70 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="RDM">
-  <link rel="manifest" href="site.webmanifest?v=7400">
+  <meta name="apple-mobile-web-app-title" content="RDM" id="rdmAppleTitle">
+  <link rel="manifest" href="site.webmanifest?v=7600" id="rdmManifestLink">
+  <script>(function(){try{
+    var ADMIN='0AqlZ35wF8lcXYiAkgz04KjzGeiSfnHs';
+    var PLAYERS={
+      'yJjA_yyMuR6OyPJgfvspRUmD':'Rehan Akhtar',
+      '6tYIAzsx4WM534_Ovd1mDaE1':'Asif Ali',
+      'iGo217fTX-irxYyJoPfrlXBf':'Saif Ali',
+      'pArgda-19Jz59OJc6D-WszY4':'Akib Ansari',
+      '2GJogYcYn4dG23ug5zkC9c-D':'Sahil Ali',
+      'RLnuOF9niHZMV0yemW4-Mm5O':'Soaib Akhtar',
+      'ubl_kIeHJdMlhTrMeV39LTjq':'Wasim',
+      'HthzwXsiP1scviZJJUWIymep':'Jubed',
+      '88DTqmDck9JVXCybKZXajzzG':'SK. Hanif',
+      'kSHlVvpggLEs9wpLrlUfTMxs':'Gulam',
+      'GgSPtAUgj_zIrTTY2WMeLeXW':'Sahil Ansari',
+      'mxXlPl2zOIzz-Lig_jsx6MEm':'Lucky',
+      'uwN3JA0MPpUewH_BFcRVoiJX':'Abushad',
+      'wKTMjxcXSV3sweGJWQ4AKZoX':'Sabre Alam',
+      'FYnhheOTlpei4tJD6C43Qc66':'Zishan',
+      'UpcsKFrMOK6GEnBLjTCZcdBk':'Kaif Lefty',
+      'YvKJ8KIvznZlq_7OQc9AYyvG':'Javed'
+    };
+    var key=(new URLSearchParams(location.search).get('key')||'').trim();
+    var isAdmin=key===ADMIN;
+    var pName=PLAYERS[key]||'';
+    if(!isAdmin&&!pName)return;
+    var role=isAdmin?'admin':'player';
+    document.documentElement.dataset.rdmPortal=role;
+    var appName=isAdmin?'RDM Admin Panel':(pName+' · RDM Profile');
+    var shortName=isAdmin?'RDM Admin':(pName.split(' ')[0]+' · RDM');
+    document.title=appName+' | Rehan Dominators Mahuawan';
+    var apple=document.getElementById('rdmAppleTitle');
+    if(apple)apple.content=shortName;
+    var startUrl=location.origin+location.pathname+'?key='+encodeURIComponent(key);
+    var scopeUrl=new URL('./',location.href).href;
+    var manifest={
+      id:startUrl,
+      name:appName,
+      short_name:shortName,
+      description:isAdmin?'Official RDM Admin Control Panel':'Official RDM Player Profile — '+pName,
+      start_url:startUrl,
+      scope:scopeUrl,
+      display:'standalone',
+      orientation:'any',
+      background_color:'#090A0D',
+      theme_color:'#C81E2B',
+      categories:['sports'],
+      icons:[
+        {src:new URL('pwa-192x192.png',location.href).href,sizes:'192x192',type:'image/png',purpose:'any'},
+        {src:new URL('pwa-512x512.png',location.href).href,sizes:'512x512',type:'image/png',purpose:'any'},
+        {src:new URL('pwa-maskable-512x512.png',location.href).href,sizes:'512x512',type:'image/png',purpose:'maskable'}
+      ]
+    };
+    var link=document.getElementById('rdmManifestLink');
+    if(link)link.href='data:application/manifest+json;charset=utf-8,'+encodeURIComponent(JSON.stringify(manifest));
+  }catch(e){}})();</script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=7.5.0">
-  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.5.0">
+  <link rel="stylesheet" href="style.css?v=7.6.0">
+  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.0">
   <script>(function(){try{if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true)document.documentElement.classList.add('rdm-standalone')}catch(e){}})();</script>
 
   <meta property="og:type" content="website">
@@ -65,7 +120,7 @@
 </head>
 <body>
   <header class="top">
-    <a class="brand" href="#home" onclick="if(typeof go==='function'){go('home');return false}">
+    <a class="brand" href="#home" onclick="if(typeof go==='function'){go(window.__rdmUrlKeyRole==='admin'?'admin':(window.__rdmUrlKeyRole==='player'?'profile':'home'));return false}">
       <img src="assets/rdm-logo.png?v=7400" alt="Rehan Dominators Mahuawan Logo" referrerPolicy="no-referrer">
       <span class="brandTitle">Rehan Dominators Mahuawan</span>
     </a>
@@ -403,7 +458,7 @@
           <p>Instant mobile access to the 17-player squad, live match fixtures, records, tournament standings, news, and club updates.</p>
           <p class="downloadMeta">Official Club App · Mobile Ready · Progressive Web App</p>
           <div class="downloadBtnRow">
-            <button class="primary downloadAppBtn" id="downloadApplicationBtn" type="button">Download App</button>
+            <button class="primary downloadAppBtn" id="downloadApplicationBtn" data-rdm-install-btn type="button">Download App</button>
             <button class="secondary" id="enableRdmNotifications" type="button">Allow Notifications</button>
           </div>
           <small id="downloadApplicationHelp">Tap to install the RDM application on your device</small>
@@ -472,17 +527,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=7.5.0"></script>
-  <script src="app.js?v=7.5.0"></script>
-  <script src="firebase-login.js?v=7.5.0"></script>
-  <script src="access-links.js?v=7.5.0"></script>
-  <script src="firebase-backend.js?v=7.5.0"></script>
-  <script src="enhancements.js?v=7.5.0"></script>
-  <script src="admin-player-manager.js?v=7.5.0"></script>
-  <script src="v6.js?v=7.5.0"></script>
-  <script src="gallery-v686.js?v=7.5.0"></script>
-  <script src="updates.js?v=7.5.0"></script>
-  <script src="forms-v6821.js?v=7.5.0"></script>
+  <script src="firebase-config.js?v=7.6.0"></script>
+  <script src="app.js?v=7.6.0"></script>
+  <script src="firebase-login.js?v=7.6.0"></script>
+  <script src="access-links.js?v=7.6.0"></script>
+  <script src="firebase-backend.js?v=7.6.0"></script>
+  <script src="enhancements.js?v=7.6.0"></script>
+  <script src="admin-player-manager.js?v=7.6.0"></script>
+  <script src="v6.js?v=7.6.0"></script>
+  <script src="gallery-v686.js?v=7.6.0"></script>
+  <script src="updates.js?v=7.6.0"></script>
+  <script src="forms-v6821.js?v=7.6.0"></script>
 
   <script>(function(){
     var control=document.getElementById('themeControl'),toggle=document.getElementById('themeToggle'),menu=document.getElementById('themeMenu');
@@ -509,10 +564,10 @@
     if(mq.addEventListener)mq.addEventListener('change',onSystem);else if(mq.addListener)mq.addListener(onSystem);
   })();</script>
 
-  <script src="rdm-v6900.js?v=7.5.0"></script>
-  <script src="rdm-v6901.js?v=7.5.0"></script>
-  <script src="rdm-v6902.js?v=7.5.0"></script>
-  <script src="rdm-global-mini.js?v=7.5.0"></script>
-  <script src="rdm-pwa.js?v=7.5.0"></script>
+  <script src="rdm-v6900.js?v=7.6.0"></script>
+  <script src="rdm-v6901.js?v=7.6.0"></script>
+  <script src="rdm-v6902.js?v=7.6.0"></script>
+  <script src="rdm-global-mini.js?v=7.6.0"></script>
+  <script src="rdm-pwa.js?v=7.6.0"></script>
 </body>
 </html>

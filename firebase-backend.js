@@ -90,7 +90,7 @@ function socialObj(x,i){return typeof x==='string'?{name:'SOCIAL '+(i+1),url:x}:
 const RDM_FALLBACK_LOGO='assets/rdm-logo.png?v=7400';
 function playerPhotoUrl(img){const s=String(img||'').trim();if(!s||/^data:image\/svg\+xml/i.test(s)||/(?:logo\.jpg|CRICKET_YOUR_TAGLINE_HERE|rdm_crest_emblem|^assets\/(?:rehan\.png|players\/))/i.test(s))return RDM_FALLBACK_LOGO;return s;}
 function profileHtml(p,editable=false,adminEdit=false){const socials=(p.socials||[]).map(socialObj).filter(s=>s.url||s.name);const sh=socials.length?`<div class="profileSocialList">${socials.map((s,i)=>`<div class="profileSocialRow"><a href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">${mini(s.name||('SOCIAL '+(i+1)))}</a></div>`).join('')}</div>`:'<p class="mutedMini">No social links</p>';
-  return `<article class="profileCard publicProfileCard"><img class="profileAvatar" src="${esc(playerPhotoUrl(p.image))}" onerror="this.onerror=null;this.src='${RDM_FALLBACK_LOGO}'"><h2>${mini(p.name)}</h2><div class="profileIdentity"><div class="identityItem"><span>Player ID</span><strong>${miniId(p.id)}</strong></div><div class="identityDivider"></div><div class="identityItem"><span>Jersey Number</span><strong>${p.jersey?'#'+esc(p.jersey):'—'}</strong></div></div>${p.nick?`<p class="profileNick">${mini(p.nick)}</p>`:''}<div class="profileOfficial"><b>${mini(p.role)}</b><br>${mini(p.detail)}</div>${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${sh}${editable?`<div class="profileEditHub"><button type="button" class="primary profileEditMain" onclick="openProfileEditMenu()">✎ Edit Profile</button><button type="button" class="secondary" onclick="chooseDP()">📷 Change Photo</button><button type="button" class="secondary profileDownloadMain" onclick="openProfileDownload()">⬇ Download Profile</button></div>`:''}${adminEdit?'':''}</article>`}
+  return `<article class="profileCard publicProfileCard"><img class="profileAvatar" src="${esc(playerPhotoUrl(p.image))}" onerror="this.onerror=null;this.src='${RDM_FALLBACK_LOGO}'"><h2>${mini(p.name)}</h2><div class="profileIdentity"><div class="identityItem"><span>Player ID</span><strong>${miniId(p.id)}</strong></div><div class="identityDivider"></div><div class="identityItem"><span>Jersey Number</span><strong>${p.jersey?'#'+esc(p.jersey):'—'}</strong></div></div>${p.nick?`<p class="profileNick">${mini(p.nick)}</p>`:''}<div class="profileOfficial"><b>${mini(p.role)}</b><br>${mini(p.detail)}</div>${p.bio?`<div class="profileBio">${mini(p.bio)}</div>`:''}${sh}${editable?`<div class="profileEditHub"><button type="button" class="primary profileEditMain" onclick="openProfileEditMenu()">✎ Edit Profile</button><button type="button" class="secondary" onclick="chooseDP()">📷 Change Photo</button><button type="button" class="secondary profileDownloadMain" onclick="openProfileDownload()">⬇ Download Profile</button><button type="button" class="secondary" id="playerInstallAppBtn" data-rdm-install-btn>📲 Install My App</button></div>`:''}${adminEdit?'':''}</article>`}
 
 render=function(){q('#players').innerHTML=D.players.map(p=>{const n=(p.name||'').toUpperCase();const lead=n==='REHAN AKHTAR'?'CAPTAIN':n==='SAIF ALI'?'VICE-CAPTAIN':n==='SOAIB AKHTAR'?'WICKET-KEEPER':'';const expanded=!!window.__rdmExpandedStats?.has(p.id);return `<article class="player clickablePlayer ${expanded?'is-stats-open':''}" data-player-id="${esc(p.id)}" onclick="openPlayerProfile('${esc(p.id)}')"><div class="photo"><img src="${esc(playerPhotoUrl(p.image))}" alt="${esc(p.name)}" onerror="this.onerror=null;this.src='${RDM_FALLBACK_LOGO}'"></div><div class="pbody">${lead?`<div class="leadershipBadge ${lead==='VICE-CAPTAIN'?'vice':lead==='WICKET-KEEPER'?'keeper':''}">${lead==='CAPTAIN'?'♛':lead==='VICE-CAPTAIN'?'★':'🧤'} ${mini(lead)}</div>`:''}<span class="simplePlayerId">${miniId(p.id)}${p.jersey?' <em>#'+esc(p.jersey)+'</em>':''}</span><h3>${mini(p.name)}</h3><b>${mini(p.role)}</b><p>${mini(p.detail)}</p>${p.nick?`<p class="squadNick">Nickname · ${mini(p.nick)}</p>`:''}</div><div class="squadCardActions"><button type="button" class="tinyBtn squadStatsToggleBtn ${expanded?'active':''}" data-toggle-stats="${esc(p.id)}" aria-expanded="${expanded}" aria-controls="squad-stats-${esc(p.id)}"><span>${expanded?'Hide Stats':'View Stats'}</span></button><button type="button" class="tinyBtn squadShareBtn" data-share-player="${esc(p.id)}" aria-label="Share ${esc(mini(p.name))} profile"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg><span>Share</span></button>${rdmAdmin()?`<button type="button" class="tinyBtn" onclick="event.stopPropagation();editPlayer('${esc(p.id)}')">✎ Edit</button>`:''}</div>${squadStatsHtml(p,expanded)}</article>`}).join('');
  q('#honourList').innerHTML=D.honours.map((h,i)=>`<article class="honour"><div class="trophy"><img src="${h.image}" onclick="zoom('${h.image}')"></div><h3>${h.year} • ${mini(h.title)}</h3><p>${mini(h.sub)}</p>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('honours',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join('');
@@ -98,7 +98,43 @@ render=function(){q('#players').innerHTML=D.players.map(p=>{const n=(p.name||'')
  q('#newsList').innerHTML=D.news.length?D.news.map((n,i)=>`<article class="card"><h3>${mini(n.title)}</h3><p>${mini(n.text)}</p>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('news',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</article>`).join(''):'<div class="empty">ɴᴏ ᴀɴɴᴏᴜɴᴄᴇᴍᴇɴᴛ ʏᴇᴛ</div>';
  q('#galleryList').innerHTML=D.gallery.length?D.gallery.map((g,i)=>`<figure><img src="${g.image}" onclick="zoom(this.src)"><figcaption>${mini(g.caption||'RDM MEMORY')}</figcaption>${rdmAdmin()?`<button class="tinyBtn deleteBtn" onclick="removeItem('gallery',${i})">ᴅᴇʟᴇᴛᴇ</button>`:''}</figure>`).join(''):'<div class="empty">ɴᴏ ɢᴀʟʟᴇʀʏ ᴘʜᴏᴛᴏ ᴀᴅᴅᴇᴅ ʏᴇᴛ</div>';
  q('#socialList').innerHTML=D.socials.map((o,i)=>{o=Array.isArray(o)?{name:o[0],url:o[1],icon:'↗'}:o;const svg=window.rdmSocialSvg?.(o.name)||'';const media=(o.image&&!/CRICKET_YOUR_TAGLINE_HERE|logo\.jpg/i.test(o.image))?`<img src="${o.image}" alt="${esc(o.name)}">`:(svg||`<span>${esc(o.icon||'↗')}</span>`);const open=o.url?`<a class="primary socialAction" href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">Open</a>`:`<button class="secondary socialAction" disabled>Link Not Added</button>`;return `<article class="socialCard"><div class="socialIcon">${media}</div><h3>${mini(o.displayName||o.name)}</h3><p class="socialPlatform">${mini(o.name)}</p><div class="socialActions">${open}${rdmAdmin()?`<button class="tinyBtn socialAction" onclick="editSocial(${i})">✎ Edit</button><button class="tinyBtn socialAction danger" onclick="removeItem('socials',${i})">Delete</button>`:''}</div></article>`}).join('');updateAuthUI()};
-renderProfile=function(){const p=rdmPlayer();if(p)q('#profileBody').innerHTML=profileHtml(p,true,false)};
+renderProfile=function(){
+  const p=rdmPlayer();
+  if(!p)return;
+  const av=(typeof XD!=='undefined'&&Array.isArray(XD.availability))?XD.availability.find(z=>z.playerId===p.id):null;
+  const st=(typeof XD!=='undefined'&&Array.isArray(XD.stats))?(XD.stats.find(z=>z.playerId===p.id)||{}):{};
+  const status=av?.status||'NOT SET';
+  const n=v=>Number(v||0)||0;
+  const extras=`<div class="playerPortalExtras">
+    <section class="playerPortalCard">
+      <div class="playerPortalAvailRow">
+        <div>
+          <span class="sectionKicker">Match Status</span>
+          <h3>My Match Availability</h3>
+          <b class="availBadge ${status==='AVAILABLE'?'available':status==='UNAVAILABLE'?'unavailable':''}">${esc(status)}</b>
+        </div>
+        <button type="button" class="primary" onclick="setAvailability('${esc(p.id)}')">Change Availability</button>
+      </div>
+    </section>
+    <section class="playerPortalCard">
+      <div class="sectionHead subHead"><div><span>Performance</span><h3>My Career Statistics</h3></div></div>
+      <div class="playerPortalStatsGrid">
+        <b>${n(st.matches)}<small>Matches</small></b>
+        <b>${n(st.runs)}<small>Runs</small></b>
+        <b>${n(st.highScore)}<small>High Score</small></b>
+        <b>${n(st.wickets)}<small>Wickets</small></b>
+        <b>${n(st.fours)} / ${n(st.sixes)}<small>4s / 6s</small></b>
+        <b>${n(st.fifties)} / ${n(st.hundreds)}<small>50s / 100s</small></b>
+        <b>${n(st.strikeRate)}<small>Strike Rate</small></b>
+        <b>${esc(st.bestBowling||'—')}<small>Best Bowling</small></b>
+        <b>${n(st.economy)}<small>Economy</small></b>
+      </div>
+      ${st.last5?`<p class="squadStatLines">Last 5 Form: ${esc(st.last5)} · Season: ${esc(st.season||'2027')}</p>`:''}
+    </section>
+  </div>`;
+  q('#profileBody').innerHTML=profileHtml(p,true,false)+extras;
+  window.rdmSyncInstallButtons?.();
+};
 window.openPlayerProfile=id=>{const p=D.players.find(x=>x.id===id);if(!p)return;let m=q('#publicProfileModal');if(!m){m=document.createElement('div');m.id='publicProfileModal';m.className='modal';m.innerHTML='<div class="dialog publicDialog"><button class="close" type="button" aria-label="Close">×</button><div id="publicProfileBody"></div></div>';document.body.appendChild(m);m.querySelector('.close').onclick=()=>m.classList.remove('show');m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')});}q('#publicProfileBody').innerHTML=profileHtml(p,false,rdmAdmin());m.classList.add('show')};
 
 
@@ -111,6 +147,7 @@ function profileEditRows(){
   return `<div class="profileEditMenu show profileEditMenuModal"><button class="profileEditRow" type="button" onclick="runProfileEditAction('photo')"><span>📷</span><b>Change Profile Photo</b><i>›</i></button><button class="profileEditRow" type="button" onclick="runProfileEditAction('resetPhoto')"><span>↺</span><b>Use RDM Logo as Photo</b><i>›</i></button><button class="profileEditRow" type="button" onclick="runProfileEditAction('jersey')"><span>🏏</span><b>Jersey Number</b><i>›</i></button><button class="profileEditRow" type="button" onclick="runProfileEditAction('nick')"><span>✦</span><b>Nickname</b><i>›</i></button><button class="profileEditRow" type="button" onclick="runProfileEditAction('bio')"><span>✎</span><b>Bio</b><i>›</i></button><button class="profileEditRow" type="button" onclick="runProfileEditAction('socials')"><span>🔗</span><b>Socials</b><i>›</i></button></div>`
 }
 window.openProfileEditMenu=function(){
+  if(!rdmPlayer())return toast?.('Player link required');
   closeProfileEditMenu();
   const m=document.createElement('div');
   m.id='profileEditModal';
@@ -203,15 +240,15 @@ window.deleteOwnSocial=async i=>{const p=rdmPlayer();if(!p)return;p.socials.spli
 
 /* V6.8.28 — restore full cloud Admin/Profile controls accidentally lost in V6.8.26. */
 const originalChooseDP=window.chooseDP;
-window.chooseDP=()=>{rdmCropTarget=rdmPlayer()?.id||null;originalChooseDP()};
+window.chooseDP=()=>{if(!rdmPlayer())return toast?.('Player link required');rdmCropTarget=rdmPlayer()?.id||null;originalChooseDP()};
 window.adminChooseDP=id=>{if(!rdmAdmin())return;rdmCropTarget=id;originalChooseDP()};
 window.adminResetDP=async id=>{if(!rdmAdmin())return;const p=D.players.find(x=>x.id===id);if(!p)return;p.image='';await rdmProfileWrite(p,{image:''});try{await rdmDB.collection(RCOL.players).doc(p.id).set({image:'',updatedAt:rdmStamp()},{merge:true})}catch{}rdmRefresh();if(document.getElementById('adminPlayerProfileModal')?.classList.contains('show'))window.adminOpenPlayerProfile(id);toast('Photo reset to RDM logo')};
-q('#cropSave').onclick=async()=>{const p=D.players.find(x=>x.id===(rdmCropTarget||rdmPlayer()?.id));if(!p||!crop.img)return;const src=q('#cropCanvas'),out=document.createElement('canvas');out.width=320;out.height=320;out.getContext('2d').drawImage(src,0,0,320,320);p.image=out.toDataURL('image/jpeg',.72);try{await rdmProfileWrite(p,{image:p.image});if(rdmAdmin()){try{await rdmDB.collection(RCOL.players).doc(p.id).set({image:p.image,updatedAt:rdmStamp()},{merge:true})}catch{}}q('#cropModal').classList.remove('show');const editedId=p.id;rdmCropTarget=null;rdmRefresh();if(document.getElementById('adminPlayerProfileModal')?.classList.contains('show'))window.adminOpenPlayerProfile?.(editedId);toast('Photo saved')}catch(e){console.error(e);toast('Photo save failed')}};
+q('#cropSave').onclick=async()=>{if(rdmCropTarget){if(!rdmAdmin()&&rdmPlayer()?.id!==rdmCropTarget)return toast?.('Not allowed')}else if(!rdmPlayer()){return toast?.('Not allowed')}const p=D.players.find(x=>x.id===(rdmCropTarget||rdmPlayer()?.id));if(!p||!crop.img)return;const src=q('#cropCanvas'),out=document.createElement('canvas');out.width=320;out.height=320;out.getContext('2d').drawImage(src,0,0,320,320);p.image=out.toDataURL('image/jpeg',.72);try{await rdmProfileWrite(p,{image:p.image});if(rdmAdmin()){try{await rdmDB.collection(RCOL.players).doc(p.id).set({image:p.image,updatedAt:rdmStamp()},{merge:true})}catch{}}q('#cropModal').classList.remove('show');const editedId=p.id;rdmCropTarget=null;rdmRefresh();window.refreshAdminSectionManager?.();if(document.getElementById('adminPlayerProfileModal')?.classList.contains('show'))window.adminOpenPlayerProfile?.(editedId);toast('Photo saved')}catch(e){console.error(e);toast('Photo save failed')}};
 
-window.removeItem=async(k,i)=>{if(!rdmAdmin())return toast('Admin only');const item=D[k]?.[i],col=RCOL[k];if(!item||!col)return;const run=async()=>{if(item._docId){try{await rdmDB.collection(col).doc(item._docId).delete()}catch(err){console.warn('Remote delete fallback',err?.code||err)}}D[k].splice(i,1);rdmSaveCollectionOverride(k,D[k]);rdmRefresh();toast('Deleted')};if(typeof window.rdmConfirmModal==='function')return window.rdmConfirmModal('DELETE ITEM','THIS ACTION CANNOT BE UNDONE.',run);return run()};
+window.removeItem=async(k,i)=>{if(!rdmAdmin())return toast('Admin only');const item=D[k]?.[i],col=RCOL[k];if(!item||!col)return;const run=async()=>{if(item._docId){try{await rdmDB.collection(col).doc(item._docId).delete()}catch(err){console.warn('Remote delete fallback',err?.code||err)}}D[k].splice(i,1);rdmSaveCollectionOverride(k,D[k]);rdmRefresh();window.refreshAdminSectionManager?.();toast('Deleted')};if(typeof window.rdmConfirmModal==='function')return window.rdmConfirmModal('DELETE ITEM','THIS ACTION CANNOT BE UNDONE.',run);return run()};
 window.editPlayer=id=>{if(rdmAdmin())openEdit('editPlayer',D.players.find(x=>x.id===id))};
 window.editSocial=i=>{if(rdmAdmin())openEdit('editSocial',D.socials[i])};
-openEdit=function(mode,obj=null){editMode=mode;editObj=obj;let h='',f='';const fi='<label>Image<input id="efile" type="file" accept="image/*"></label>';
+openEdit=function(mode,obj=null){if(!rdmAdmin())return toast('Admin only');editMode=mode;editObj=obj;let h='',f='';const fi='<label>Image<input id="efile" type="file" accept="image/*"></label>';
  if(mode==='match'){h='Add Match';f='<label>Opponent<input id="e1"></label><label>Date / Time<input id="e2"></label><label>Venue<input id="e3"></label><label>Detail / Result / POTM<textarea id="e4"></textarea></label>'}
  if(mode==='news'){h='Add News';f='<label>Title<input id="e1"></label><label>Announcement<textarea id="e2"></textarea></label>'}
  if(mode==='player'){h='Add Player';f='<label>Name<input id="e1"></label><label>Role<input id="e2"></label><label>Playing Detail<textarea id="e3"></textarea></label>'+fi}
@@ -230,7 +267,7 @@ q('#editForm').onsubmit=async e=>{e.preventDefault();if(!rdmAdmin())return toast
  if(editMode==='social'){const rec={name:v('e1'),displayName:v('e4')||v('e1'),url:v('e2'),icon:v('e3')||'↗',image:img||'',order:D.socials.length+1,_docId:localId};try{const ref=await rdmDB.collection(RCOL.socials).add({...rec,updatedAt:rdmStamp()});rec._docId=ref.id}catch{}D.socials.push(rec);rdmSaveCollectionOverride('socials',D.socials)}
  if(editMode==='editSocial'){editObj.name=v('e1');editObj.displayName=v('e4')||v('e1');editObj.url=v('e2');editObj.icon=v('e3')||editObj.icon||'↗';if(img)editObj.image=img;if(editObj._docId){try{await rdmDB.collection(RCOL.socials).doc(editObj._docId).set({name:editObj.name,displayName:editObj.displayName,url:editObj.url,icon:editObj.icon,...(img?{image:img}:{}),updatedAt:rdmStamp()},{merge:true})}catch{}}rdmSaveCollectionOverride('socials',D.socials)}
  if(editMode==='editPlayer'){const p=editObj;p.name=v('e1');p.role=v('e2');p.detail=v('e3');p.jersey=v('e4');p.nick=v('e5');p.bio=v('e6');if(img)p.image=img;try{await rdmDB.collection(RCOL.players).doc(p.id).set({name:p.name,role:p.role,detail:p.detail,jersey:p.jersey,...(img?{image:img}:{}),updatedAt:rdmStamp()},{merge:true})}catch{}await rdmProfileWrite(p,{name:p.name,role:p.role,detail:p.detail,...(img?{image:img}:{})})}
- q('#editor').classList.remove('show');rdmRefresh();toast('Saved')}catch(e){console.error(e);toast(e.message==='IMAGE_TOO_LARGE'?'Image too large':'Save failed')}};
+ q('#editor').classList.remove('show');rdmRefresh();window.refreshAdminSectionManager?.();toast('Saved')}catch(e){console.error(e);toast(e.message==='IMAGE_TOO_LARGE'?'Image too large':'Save failed')}};
 rdmRefresh();
 
 function rdmCanvasRoundRect(ctx,x,y,w,h,r,fill,stroke){
@@ -444,7 +481,7 @@ window.adminOpenPlayerProfile=function(id){
   const p=D.players.find(x=>x.id===id);if(!p)return;
   let m=document.getElementById('adminPlayerProfileModal');
   if(!m){m=document.createElement('div');m.id='adminPlayerProfileModal';m.className='modal';m.innerHTML='<div class="dialog publicDialog adminPlayerDialog"><button class="close" type="button">×</button><div id="adminPlayerProfileBody"></div></div>';document.body.appendChild(m);m.querySelector('.close').onclick=()=>m.classList.remove('show');m.onclick=e=>{if(e.target===m)m.classList.remove('show')}}
-  document.getElementById('adminPlayerProfileBody').innerHTML=profileHtml(p,false,false)+`<div class="adminPlayerActions"><button class="primary" onclick="adminEditPlayerProfile('${p.id}')">✎ Edit Profile</button><button class="secondary" onclick="adminChooseDP('${p.id}')">📷 Change Photo</button><button class="tinyBtn danger" onclick="adminResetDP('${p.id}')">↺ Reset to Logo</button></div>`;
+  document.getElementById('adminPlayerProfileBody').innerHTML=profileHtml(p,false,false)+`<div class="adminPlayerActions"><button class="primary" onclick="adminEditPlayerProfile('${p.id}')">✎ Edit Profile</button><button class="secondary" onclick="editPlayer('${p.id}')">✎ Details &amp; Role</button><button class="secondary" onclick="editStats('${p.id}')">📊 Edit Stats</button><button class="secondary" onclick="setAvailability('${p.id}')">✓ Availability</button><button class="secondary" onclick="adminChooseDP('${p.id}')">📷 Change Photo</button><button class="tinyBtn danger" onclick="adminResetDP('${p.id}')">↺ Reset to Logo</button></div>`;
   m.classList.add('show');
 };
 window.adminEditPlayerProfile=function(id){

@@ -99,7 +99,9 @@ html {
 
 body {
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -137,6 +139,7 @@ img {
    ========================================================================== */
 
 .top {
+  flex-shrink: 0;
   height: 64px;
   padding: 0 clamp(16px, 4vw, 48px);
   display: flex;
@@ -287,6 +290,7 @@ img {
 
 /* Primary Nav — Clean unboxed typography with crisp active underline */
 .nav {
+  flex-shrink: 0;
   height: 44px;
   padding: 0 clamp(16px, 4vw, 48px);
   display: flex;
@@ -346,14 +350,16 @@ img {
 }
 
 /* ==========================================================================
-   Main Container & Page Transitions
+   Main Container & Page Transitions + Dedicated Portal Isolation
    ========================================================================== */
 
 main {
+  flex: 1 0 auto;
   width: 100%;
-  max-width: 1680px;
+  min-width: 0;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: clamp(18px, 2.4vw, 32px) clamp(14px, 3.2vw, 48px) 84px;
+  padding: clamp(18px, 2.4vw, 30px) clamp(14px, 3vw, 36px) 64px;
 }
 
 .page {
@@ -363,6 +369,18 @@ main {
 .page.active {
   display: block;
   animation: pageEnter 200ms var(--ease);
+}
+
+html[data-rdm-portal="admin"] #nav,
+html[data-rdm-portal="player"] #nav {
+  display: none !important;
+}
+
+html[data-rdm-portal="admin"] .page:not(#admin),
+html[data-rdm-portal="player"] .page:not(#profile),
+html[data-rdm-portal="public"] #admin,
+html[data-rdm-portal="public"] #profile {
+  display: none !important;
 }
 
 @keyframes pageEnter {
@@ -2697,6 +2715,160 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   color: var(--text-muted);
 }
 
+.adminSessionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.adminManagerHead {
+  margin-bottom: 16px;
+}
+
+.adminManagerHead h2 {
+  margin: 4px 0 6px;
+  padding-right: 48px;
+}
+
+.adminManagerHead p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.adminManagerTopBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.adminManagerList {
+  display: grid;
+  gap: 10px;
+}
+
+.adminManagerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.adminManagerMeta {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.adminManagerMeta strong {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.adminManagerMeta small {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.adminManagerBtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.playerPortalExtras {
+  max-width: 720px;
+  margin: 20px auto 0;
+  display: grid;
+  gap: 16px;
+}
+
+.playerPortalCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: clamp(18px, 3vw, 26px);
+  box-shadow: var(--shadow-card);
+}
+
+.playerPortalCard .subHead {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.playerPortalCard h3 {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.playerPortalAvailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.availBadge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.availBadge.available {
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: transparent;
+}
+
+.availBadge.unavailable {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger-border);
+}
+
+.playerPortalStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.playerPortalStatsGrid b {
+  display: grid;
+  gap: 4px;
+  padding: 12px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.playerPortalStatsGrid b small {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* Admin Private Access Links */
 .adminLinksBox {
   margin-top: 24px;
@@ -3481,6 +3653,9 @@ body:has(.modal.show) {
 }
 
 footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  width: 100%;
   border-top: 1px solid var(--border);
   padding: 36px 20px 48px;
   display: grid;
@@ -3511,7 +3686,7 @@ footer b {
    Responsive Breakpoints (Mobile Touch Ergonomics <=15% Sticky Cap)
    ========================================================================== */
 
-@media (min-width: 1280px) {
+@media (min-width: 1180px) {
   .honours,
   .socialGrid,
   .gallery,
@@ -3716,7 +3891,8 @@ footer b {
     min-height: 46px;
   }
 
-  .statNums {
+  .statNums,
+  .playerPortalStatsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

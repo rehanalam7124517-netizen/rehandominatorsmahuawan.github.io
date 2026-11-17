@@ -2,52 +2,67 @@
   'use strict';
   const standalone = matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7500').catch(console.warn));
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7600').catch(console.warn));
   }
 
   let promptEvent = null;
 
-  function syncInstallButtons(){
-    const btn = document.getElementById('downloadApplicationBtn');
-    const help = document.getElementById('downloadApplicationHelp');
-    if (!btn) return;
-    if (standalone || window.__rdmAppInstalled) {
-      btn.textContent = 'App Installed ✓';
-      btn.disabled = true;
-      if (help) help.textContent = 'RDM app is installed on this device';
-      return;
+  function portalAppLabel(){
+    const role = window.__rdmUrlKeyRole || document.documentElement.dataset.rdmPortal || 'public';
+    if (role === 'admin') return { noun: 'Admin App', title: 'Install RDM Admin App', desc: 'Install the Admin Panel on your home screen for instant 1-tap management.' };
+    if (role === 'player') {
+      const pName = (typeof window.D !== 'undefined' && window.session?.playerId) ? (window.D.players.find(p => p.id === window.session.playerId)?.name || 'My Profile') : 'My Profile';
+      return { noun: 'My App', title: 'Install ' + pName + ' App', desc: 'Install your personal RDM player portal directly onto your home screen.' };
     }
-    btn.disabled = false;
-    if (promptEvent) {
-      btn.textContent = 'Install App Now';
-      if (help) help.textContent = 'Ready — tap to install directly onto your home screen';
-    } else {
-      btn.textContent = 'Download App';
+    return { noun: 'App', title: 'Install RDM App', desc: 'Install Rehan Dominators Mahuawan on your device for instant 1-tap access.' };
+  }
+
+  function syncInstallButtons(){
+    const info = portalAppLabel();
+    const btns = document.querySelectorAll('[data-rdm-install-btn], #downloadApplicationBtn');
+    const help = document.getElementById('downloadApplicationHelp');
+    btns.forEach(btn => {
+      if (!btn.dataset.baseLabel) btn.dataset.baseLabel = btn.textContent.trim();
+      if (standalone || window.__rdmAppInstalled) {
+        btn.textContent = info.noun + ' Installed ✓';
+        btn.disabled = true;
+      } else if (promptEvent) {
+        btn.disabled = false;
+        btn.textContent = '📲 Install ' + info.noun;
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.id === 'downloadApplicationBtn' ? 'Download App' : ('📲 Install ' + info.noun);
+      }
+    });
+    if (help) {
+      if (standalone || window.__rdmAppInstalled) help.textContent = 'RDM app is installed on this device';
+      else if (promptEvent) help.textContent = 'Ready — tap to install directly onto your home screen';
     }
   }
+  window.rdmSyncInstallButtons = syncInstallButtons;
 
   function openInstallGuideModal(){
     document.getElementById('rdmInstallGuideModal')?.remove();
+    const info = portalAppLabel();
     const ua = navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(ua);
     const inIframe = window.self !== window.top;
     const m = document.createElement('div');
     m.id = 'rdmInstallGuideModal';
     m.className = 'modal show rdmUnifiedModal';
-    let title = 'Install RDM App';
     let body = '';
     if (inIframe) {
-      body = `<p class="authModalSub">Direct browser installation is blocked inside an embedded preview frame. Open the app in a full browser tab, then tap Install.</p>
+      body = `<p class="authModalSub">Direct browser installation is blocked inside an embedded preview frame. Open this link in your mobile or desktop browser, then tap Install.</p>
       <a class="primary wide" href="${location.href}" target="_blank" rel="noopener noreferrer">Open in Full Browser to Install</a>`;
     } else if (isIOS) {
-      body = `<p class="authModalSub">Install Rehan Dominators Mahuawan on iPhone or iPad:</p>
+      body = `<p class="authModalSub">${info.desc}</p>
       <div class="installGuideSteps">
         <div><strong>1.</strong> Tap the <strong>Share</strong> icon in Safari's toolbar.</div>
         <div><strong>2.</strong> Scroll down and tap <strong>Add to Home Screen</strong>.</div>
-        <div><strong>3.</strong> Tap <strong>Add</strong> to finish installing RDM.</div>
+        <div><strong>3.</strong> Tap <strong>Add</strong> to save <strong>${info.title.replace('Install ','')}</strong>.</div>
       </div>`;
     } else {
-      body = `<p class="authModalSub">Your browser hasn't triggered the quick install prompt yet. Install in 1 tap from your browser:</p>
+      body = `<p class="authModalSub">${info.desc}</p>
       <div class="installGuideSteps">
         <div><strong>Android Chrome / Edge:</strong> Open browser menu (<strong>⋮</strong>) and tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</div>
         <div><strong>Desktop Chrome / Edge:</strong> Click the <strong>Install (⊕)</strong> icon in the address bar.</div>
@@ -59,7 +74,7 @@
         <img src="assets/rdm-logo.png?v=7400" alt="RDM Logo">
         <div>
           <span class="sectionKicker">Progressive Web App</span>
-          <h2>${title}</h2>
+          <h2>${info.title}</h2>
         </div>
       </div>
       ${body}
@@ -103,7 +118,7 @@
     promptEvent = null;
     window.__rdmAppInstalled = true;
     syncInstallButtons();
-    window.toast?.('RDM App installed');
+    window.toast?.('App installed');
   });
 
   document.addEventListener('DOMContentLoaded', syncInstallButtons);
@@ -113,7 +128,7 @@
       setTimeout(() => { window.rdmPromptInstall(); }, 120);
       return;
     }
-    const btn = e.target.closest && e.target.closest('#downloadApplicationBtn');
+    const btn = e.target.closest && e.target.closest('[data-rdm-install-btn], #downloadApplicationBtn');
     if (!btn) return;
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -126,3 +141,4 @@
     }
   }, true);
 })();
+
