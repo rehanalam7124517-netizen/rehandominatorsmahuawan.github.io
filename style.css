@@ -2251,7 +2251,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .downloadAppCard > img {
   width: 140px;
   height: 140px;
-  border-radius: 26px;
+  border-radius: 50%;
   object-fit: cover;
   object-position: center;
   background: #9E9E9E;
@@ -2770,7 +2770,7 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
 .installGuideHead img {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 50%;
   object-fit: cover;
   object-position: center;
   border: 1.5px solid var(--accent);
