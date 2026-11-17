@@ -53,6 +53,17 @@ function copyStaticFilesPlugin() {
       for (const dir of staticDirs) {
         copyDir(dir, path.join(outDir, dir));
       }
+      const distIndex = path.join(outDir, 'index.html');
+      if (fs.existsSync(distIndex)) {
+        let html = fs.readFileSync(distIndex, 'utf8');
+        if (!html.includes('style.css')) {
+          html = html.replace(
+            '</head>',
+            '  <link rel="stylesheet" href="style.css?v=7.6.1">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.1">\n</head>'
+          );
+          fs.writeFileSync(distIndex, html, 'utf8');
+        }
+      }
     }
   };
 }
