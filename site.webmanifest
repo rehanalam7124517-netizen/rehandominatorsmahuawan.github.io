@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Rehan Dominators Mahuawan",
-  "short_name": "RDM",
-  "description": "Official Rehan Dominators Mahuawan cricket team app.",
+  "name": "RDM Official — Rehan Dominators Mahuawan",
+  "short_name": "RDM Official",
+  "description": "Official cricket team website and app for Rehan Dominators Mahuawan (RDM), Gopalganj, Bihar.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#090A0D",
-  "theme_color": "#C81E2B",
+  "orientation": "portrait-primary",
+  "background_color": "#F2F7FD",
+  "theme_color": "#0958D9",
   "prefer_related_applications": false,
   "categories": [
     "sports"
