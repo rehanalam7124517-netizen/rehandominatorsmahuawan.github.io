@@ -7,9 +7,9 @@ const updDate=v=>{if(!v)return'';try{const d=new Date(v+'T00:00:00');return d.to
 const updTime=ms=>{if(!ms)return'';const d=new Date(ms);return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true})};
 const updDay=x=>x?.date?updDate(x.date):(x?.createdMs?new Date(x.createdMs).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'');
 const updDateTime=x=>{const d=updDay(x),t=updTime(x?.createdMs);return [d&&('📅 '+d),t&&('🕒 '+t)].filter(Boolean).join(' • ')};
-function hydrateUpdatesLocal(){const ov=window.rdmGetOverrides?.();const snap=window.rdmOfflineSnap?.('updates');if(Array.isArray(ov?.updates))RDM_UPDATES=ov.updates;else if(Array.isArray(snap))RDM_UPDATES=snap;}
-hydrateUpdatesLocal();
-async function loadUpdates(){hydrateUpdatesLocal();renderUpdates();try{const s=await rdmDB.collection(UPDATE_COL).get();RDM_UPDATES=s.docs.filter(d=>d.id!=='_news_updates_swap_v1').map(d=>({...d.data(),_docId:d.id})).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdMs||0)-(a.createdMs||0));window.rdmOfflineSnap?.('updates',RDM_UPDATES);const ov=window.rdmGetOverrides?.();if(Array.isArray(ov?.updates))RDM_UPDATES=ov.updates;}catch(e){console.warn('Offline updates cache active',e?.code||e)}
+function hydrateUpdatesLocal(){const ov=window.rdmGetOverrides?.();if(Array.isArray(ov?.updates))RDM_UPDATES=ov.updates;}
+async function loadUpdates(){try{const s=await rdmDB.collection(UPDATE_COL).get();RDM_UPDATES=s.docs.filter(d=>d.id!=='_news_updates_swap_v1').map(d=>({...d.data(),_docId:d.id})).sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||(b.createdMs||0)-(a.createdMs||0));}catch(e){console.warn('Local fallback for updates',e?.code||e)}
+ hydrateUpdatesLocal();
  renderUpdates();
 }
 function saveUpdatesOverride(){window.rdmSetOverrides?.(o=>{o.updates=RDM_UPDATES});}

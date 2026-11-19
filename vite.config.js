@@ -57,7 +57,7 @@ function copyStaticFilesPlugin() {
       if (fs.existsSync(distIndex)) {
         let html = fs.readFileSync(distIndex, 'utf8');
         html = html
-          .replace(/(?:\.?\/)?assets\/site-[^"']+\.webmanifest(?:\?[^"']*)?/g, 'site.webmanifest?v=7700')
+          .replace(/(?:\.?\/)?assets\/site-[^"']+\.webmanifest(?:\?[^"']*)?/g, 'site.webmanifest?v=7600')
           .replace(/(?:\.?\/)?assets\/pwa-192x192-[^"']+\.png(?:\?[^"']*)?/g, 'pwa-192x192.png?v=7400')
           .replace(/(?:\.?\/)?assets\/apple-touch-icon-[^"']+\.png(?:\?[^"']*)?/g, 'apple-touch-icon.png?v=7400')
           .replace(/(?:\.?\/)?assets\/rdm-logo-[^"']+\.png(?:\?[^"']*)?/g, 'assets/rdm-logo.png?v=7400')
@@ -66,7 +66,7 @@ function copyStaticFilesPlugin() {
         if (!html.includes('style.css')) {
           html = html.replace(
             '</head>',
-            '  <link rel="stylesheet" href="style.css?v=7.7.0">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.7.0">\n</head>'
+            '  <link rel="stylesheet" href="style.css?v=7.6.0">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.0">\n</head>'
           );
         }
         fs.writeFileSync(distIndex, html, 'utf8');

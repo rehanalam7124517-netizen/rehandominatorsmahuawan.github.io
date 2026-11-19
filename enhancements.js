@@ -3,9 +3,9 @@ const XCOL={stats:'PlayerStats',achievements:'Achievements',availability:'Availa
 let XD={stats:[],achievements:[],availability:[],lineups:[]}, galleryFilter='ALL';
 function rdmWhen(ms){if(!ms)return '';const d=new Date(ms);return '🕒 '+d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' • '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});}
 const xdoc=d=>({...d.data(),_docId:d.id});
-function xHydrateLocal(){const snap=window.rdmOfflineSnap?.('xd');const ov=window.rdmGetOverrides?.();['stats','achievements','availability','lineups'].forEach(k=>{if(Array.isArray(ov?.xd?.[k]))XD[k]=ov.xd[k];else if(Array.isArray(snap?.[k]))XD[k]=snap[k];});}
-xHydrateLocal();
-async function xload(){xHydrateLocal();xrender();try{const [s,a,v,l]=await Promise.all([rdmDB.collection(XCOL.stats).get(),rdmDB.collection(XCOL.achievements).get(),rdmDB.collection(XCOL.availability).get(),rdmDB.collection(XCOL.lineups).get()]);XD.stats=s.docs.map(xdoc);XD.achievements=a.docs.map(xdoc).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));XD.availability=v.docs.map(xdoc);XD.lineups=l.docs.map(xdoc).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));window.rdmOfflineSnap?.('xd',{stats:XD.stats,achievements:XD.achievements,availability:XD.availability,lineups:XD.lineups});const ov=window.rdmGetOverrides?.();if(ov?.xd){['stats','achievements','availability','lineups'].forEach(k=>{if(Array.isArray(ov.xd[k]))XD[k]=ov.xd[k];});}}catch(e){console.warn('Offline XD cache active',e?.code||e)}
+function xHydrateLocal(){const ov=window.rdmGetOverrides?.();if(ov?.xd){['stats','achievements','availability','lineups'].forEach(k=>{if(Array.isArray(ov.xd[k]))XD[k]=ov.xd[k];});}}
+async function xload(){try{const [s,a,v,l]=await Promise.all([rdmDB.collection(XCOL.stats).get(),rdmDB.collection(XCOL.achievements).get(),rdmDB.collection(XCOL.availability).get(),rdmDB.collection(XCOL.lineups).get()]);XD.stats=s.docs.map(xdoc);XD.achievements=a.docs.map(xdoc).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));XD.availability=v.docs.map(xdoc);XD.lineups=l.docs.map(xdoc).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));}catch(e){console.warn('Local fallback for enhancements',e?.code||e)}
+  xHydrateLocal();
   xrender();
 }
 function xSaveOverride(key,arr){window.rdmSetOverrides?.(o=>{o.xd=o.xd||{};o.xd[key]=arr});}
