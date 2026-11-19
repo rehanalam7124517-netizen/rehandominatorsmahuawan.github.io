@@ -2,33 +2,21 @@ import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import path from 'node:path';
 
-function copyStaticFilesPlugin() {
-  const staticFiles = [
-    'app.js',
-    'access-links.js',
-    'admin-player-manager.js',
-    'enhancements.js',
-    'firebase-backend.js',
+function copyWebAssetsPlugin() {
+  const safeStaticFiles = [
     'firebase-config.js',
-    'firebase-login.js',
-    'forms-v6821.js',
-    'gallery-v686.js',
-    'rdm-global-mini.js',
-    'rdm-pwa.js',
-    'rdm-v6900.js',
-    'rdm-v6901.js',
-    'rdm-v6902.js',
-    'updates.js',
-    'v6.js',
-    'style.css',
-    'rdm-v6890-fix.css',
-    'site.webmanifest',
-    'sw.js',
+    'apple-touch-icon.png',
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'pwa-maskable-512x512.png',
     'robots.txt',
     'sitemap.xml',
     'googlecd319e61dfe51dd1.html'
   ];
-  const staticDirs = ['assets', 'src/assets'];
+  const safeStaticDirs = [
+    'assets',
+    'src/assets'
+  ];
 
   function copyDir(src, dest) {
     if (!fs.existsSync(src)) return;
@@ -41,41 +29,66 @@ function copyStaticFilesPlugin() {
     }
   }
 
+  const mimeTypes = {
+    '.js': 'application/javascript; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.json': 'application/json',
+    '.txt': 'text/plain; charset=utf-8',
+    '.xml': 'application/xml; charset=utf-8',
+    '.html': 'text/html; charset=utf-8'
+  };
+
+  function resolveSafeAsset(urlPath) {
+    const cleanPath = decodeURIComponent((urlPath || '').split('?')[0]).replace(/^\/+/, '');
+    if (!cleanPath || cleanPath.includes('..')) return null;
+    const isSafeFile = safeStaticFiles.includes(cleanPath);
+    const isSafeDir = safeStaticDirs.some((dir) => cleanPath.startsWith(`${dir}/`));
+    if (!isSafeFile && !isSafeDir) return null;
+    const absPath = path.resolve(process.cwd(), cleanPath);
+    if (!absPath.startsWith(process.cwd()) || !fs.existsSync(absPath)) return null;
+    if (!fs.statSync(absPath).isFile()) return null;
+    return absPath;
+  }
+
   return {
-    name: 'rdm-copy-static',
+    name: 'rdm-copy-web-static',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const assetPath = resolveSafeAsset(req.url);
+        if (!assetPath) return next();
+        const ext = path.extname(assetPath).toLowerCase();
+        res.statusCode = 200;
+        res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+        fs.createReadStream(assetPath).pipe(res);
+      });
+    },
     writeBundle(options) {
-      const outDir = options.dir || 'dist';
-      for (const file of staticFiles) {
-        if (fs.existsSync(file)) {
-          fs.copyFileSync(file, path.join(outDir, file));
+      const outDir = options.dir || path.resolve(process.cwd(), 'dist');
+      for (const file of safeStaticFiles) {
+        const srcPath = path.resolve(process.cwd(), file);
+        if (fs.existsSync(srcPath)) {
+          fs.copyFileSync(srcPath, path.join(outDir, file));
         }
       }
-      for (const dir of staticDirs) {
-        copyDir(dir, path.join(outDir, dir));
+      for (const dir of safeStaticDirs) {
+        copyDir(path.resolve(process.cwd(), dir), path.join(outDir, dir));
       }
-      const distIndex = path.join(outDir, 'index.html');
-      if (fs.existsSync(distIndex)) {
-        let html = fs.readFileSync(distIndex, 'utf8');
-        html = html
-          .replace(/(?:\.?\/)?assets\/site-[^"']+\.webmanifest(?:\?[^"']*)?/g, 'site.webmanifest?v=7600')
-          .replace(/(?:\.?\/)?assets\/pwa-192x192-[^"']+\.png(?:\?[^"']*)?/g, 'pwa-192x192.png?v=7400')
-          .replace(/(?:\.?\/)?assets\/apple-touch-icon-[^"']+\.png(?:\?[^"']*)?/g, 'apple-touch-icon.png?v=7400')
-          .replace(/(?:\.?\/)?assets\/rdm-logo-[^"']+\.png(?:\?[^"']*)?/g, 'assets/rdm-logo.png?v=7400')
-          .replace(/(?:\.?\/)?assets\/hero_cricket_stadium_[^"']+\.jpg(?:\?[^"']*)?/g, 'src/assets/images/hero_cricket_stadium_1794890926411.jpg')
-          .replace(/(?:\.?\/)?assets\/club_heritage_banner_[^"']+\.jpg(?:\?[^"']*)?/g, 'src/assets/images/club_heritage_banner_1794890926814.jpg');
-        if (!html.includes('style.css')) {
-          html = html.replace(
-            '</head>',
-            '  <link rel="stylesheet" href="style.css?v=7.6.0">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.0">\n</head>'
-          );
-        }
-        fs.writeFileSync(distIndex, html, 'utf8');
+      const appManifest = path.resolve(process.cwd(), 'android-web/site.webmanifest');
+      if (fs.existsSync(appManifest)) {
+        fs.copyFileSync(appManifest, path.join(outDir, 'site.webmanifest'));
       }
     }
   };
 }
 
 export default defineConfig({
+  root: path.resolve(process.cwd(), 'android-web'),
+  publicDir: false,
+  base: './',
   server: {
     port: 3000,
     host: '0.0.0.0',
@@ -87,8 +100,8 @@ export default defineConfig({
     allowedHosts: true
   },
   build: {
-    outDir: 'dist',
+    outDir: path.resolve(process.cwd(), 'dist'),
     emptyOutDir: true
   },
-  plugins: [copyStaticFilesPlugin()]
+  plugins: [copyWebAssetsPlugin()]
 });

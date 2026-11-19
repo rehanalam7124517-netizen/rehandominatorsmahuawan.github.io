@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en" data-theme="azure">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#F2F7FD" id="rdmThemeMeta">
+  <title>RDM Official | Rehan Dominators Mahuawan (RDM)</title>
+  <meta name="description" content="Official cricket team app for Rehan Dominators Mahuawan (RDM), Gopalganj, Bihar — featuring the squad, match centre, team records, tournaments, playing XI, honours, gallery, and updates.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="RDM Official | Rehan Dominators Mahuawan (RDM)">
+  <meta property="og:description" content="Official cricket team app for Rehan Dominators Mahuawan (RDM) · Mahuawan · Gopalganj · Bihar">
+  <meta property="og:image" content="assets/rdm-logo.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="pwa-192x192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="./assets/site-BBnFuwkU.webmanifest">
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('rdm-app-theme') || 'azure';
+        if (!/^(azure|daylight|turf|night)$/.test(t)) t = 'azure';
+        document.documentElement.setAttribute('data-theme', t);
+        var meta = document.getElementById('rdmThemeMeta');
+        if (meta) {
+          meta.content = t === 'night' ? '#071224' : (t === 'daylight' ? '#FFFFFF' : (t === 'turf' ? '#F4F9F6' : '#F2F7FD'));
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-L4WqbJe8.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Cn2e8TJ9.css">
+</head>
+<body>
+  <div id="rdmAppRoot" class="appShell">
+    <main id="appViewport" class="appViewport" aria-live="polite"></main>
+  </div>
+
+  <div id="rdmToast" class="rdmToast" role="status" aria-live="polite"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="#EAF4FF" />
+    </item>
+    <item android:width="180dp" android:height="180dp" android:gravity="center">
+        <bitmap
+            android:gravity="fill"
+            android:src="@drawable/rdm_splash_logo" />
+    </item>
+</layer-list>
