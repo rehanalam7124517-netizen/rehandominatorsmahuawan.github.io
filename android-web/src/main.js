@@ -51,7 +51,7 @@ const THEMES = [
 ];
 
 const ui = {
-  screen: 'welcome', // 'welcome' | 'public' | 'playerDetail' | 'subpage' | 'login' | 'admin'
+  screen: 'public', // 'public' | 'playerDetail' | 'subpage' | 'login' | 'admin'
   publicTab: 'home', // 'home' | 'squad' | 'matches' | 'gallery' | 'more'
   matchesSubTab: 'fixtures', // 'fixtures' | 'xi' | 'tournaments'
   galleryAlbum: 'ALL',
@@ -92,7 +92,6 @@ function sameRoute(a, b) {
 }
 
 function buildRouteHash(r) {
-  if (r.screen === 'welcome') return '#welcome';
   if (r.screen === 'playerDetail' && r.detailPlayerId) return `#player-${r.detailPlayerId}`;
   if (r.screen === 'subpage') return `#section-${r.morePage}`;
   if (r.screen === 'login') return '#admin-login';
@@ -237,61 +236,6 @@ function drawerIcon(name) {
 
 /* ==================== RENDERERS ==================== */
 
-function renderWelcomeScreen() {
-  return `
-    <section class="welcomeScreen" aria-label="Welcome to RDM Official Cricket Team">
-      <div class="welcomeBackdrop" aria-hidden="true">
-        <img src="${escHtml(CLUB_INFO.heroImagePath)}" alt="" referrerPolicy="no-referrer">
-      </div>
-      <div class="welcomeTopStrip">
-        <span class="welcomeTopMark">CRICKET TEAM · EST. ${escHtml(CLUB_INFO.founded)}</span>
-        <button type="button" class="iconActionBtn" id="btnPickTheme" aria-label="Change app theme">
-          <span>Theme · ${escHtml(getThemeLabel(ui.theme))}</span>
-        </button>
-      </div>
-      <div class="welcomeMainGrid">
-        <div class="welcomeCenter">
-          <div class="welcomeCrest">
-            <img src="${escHtml(currentLogo())}" alt="RDM Official Cricket Team Crest" referrerPolicy="no-referrer" onerror="this.onerror=null;this.src='${CLUB_INFO.logoPath}'">
-          </div>
-          <span class="welcomeKicker">OFFICIAL CRICKET TEAM</span>
-          <h1 class="welcomeHeading">WELCOME TO RDM OFFICIAL</h1>
-          <p class="welcomeSubtitle">${escHtml(CLUB_INFO.subtitle)}</p>
-          <p class="welcomeTagline">${escHtml(CLUB_INFO.tagline)}</p>
-          <div class="welcomeFactsRow" aria-label="Team highlights">
-            <div class="welcomeFactItem">
-              <strong class="num">${state.players.length}</strong>
-              <span>Squad</span>
-            </div>
-            <div class="welcomeFactItem">
-              <strong class="num">${state.honours.length}</strong>
-              <span>Honours</span>
-            </div>
-            <div class="welcomeFactItem">
-              <strong class="num">${escHtml(CLUB_INFO.founded)}</strong>
-              <span>Founded</span>
-            </div>
-          </div>
-          <div class="welcomeActions">
-            <button type="button" class="btnPrimary btnFull" id="btnContinueGuest">
-              <span>CONTINUE AS GUEST</span>
-              <span aria-hidden="true">→</span>
-            </button>
-          </div>
-        </div>
-        <div class="welcomeShowcase" aria-hidden="true">
-          <img src="${escHtml(CLUB_INFO.heroImagePath)}" alt="" referrerPolicy="no-referrer">
-          <div class="welcomeShowcaseCaption">
-            <strong>${escHtml(formatTextCase(CLUB_INFO.orgName))}</strong>
-            <span>${escHtml(CLUB_INFO.locationLabel)} · Official Cricket Team</span>
-          </div>
-        </div>
-      </div>
-      <footer class="welcomeFooter">${escHtml(CLUB_INFO.location)}</footer>
-    </section>
-  `;
-}
-
 function renderTopBar({ title = 'RDM Official', showBack = false, showPublicNav = true, rightActionHtml = '' }) {
   const navItems = [
     ['home', 'Home'],
@@ -340,13 +284,6 @@ function renderTopBar({ title = 'RDM Official', showBack = false, showPublicNav 
 
 function renderSideDrawer() {
   const isAdmin = isVerifiedAdmin();
-  const primaryLinks = [
-    ['home', 'Home'],
-    ['squad', 'Squad Roster'],
-    ['matches', 'Matches Centre'],
-    ['gallery', 'Team Gallery'],
-    ['more', 'Settings & More']
-  ];
   const teamPages = [
     ['xi', 'Playing XI'],
     ['records', 'Team Records'],
@@ -373,17 +310,6 @@ function renderSideDrawer() {
         </div>
 
         <div class="drawerBody">
-          <div class="drawerGroupLabel">Main</div>
-          ${primaryLinks.map(([id, label]) => `
-            <button type="button" class="drawerNavBtn ${ui.screen === 'public' && ui.publicTab === id ? 'active' : ''}" data-public-tab="${id}">
-              <span class="drawerNavLeft">
-                <span class="drawerNavIcon" aria-hidden="true">${drawerIcon(id)}</span>
-                <span>${label}</span>
-              </span>
-              <span aria-hidden="true">›</span>
-            </button>
-          `).join('')}
-
           <div class="drawerGroupLabel">Team Sections</div>
           ${teamPages.map(([id, label]) => `
             <button type="button" class="drawerNavBtn ${ui.screen === 'subpage' && ui.morePage === id ? 'active' : ''}" data-open-subpage="${id}">
@@ -480,6 +406,7 @@ function renderHomeTab() {
         <div class="heroBannerTop">
           <img class="heroBannerLogo" src="${escHtml(currentLogo())}" alt="RDM Official Crest" referrerPolicy="no-referrer" onerror="this.onerror=null;this.src='${CLUB_INFO.logoPath}'">
           <div class="heroBannerCopy">
+            <span class="heroEyebrow">OFFICIAL CRICKET TEAM</span>
             <h1 class="heroDisplayTitle">${escHtml(CLUB_INFO.orgName)}</h1>
             <p>${escHtml(CLUB_INFO.motto)}</p>
           </div>
@@ -502,7 +429,7 @@ function renderHomeTab() {
       <button type="button" class="kpiCardBtn" data-public-tab="squad">
         <div>
           <strong class="kpiValue num">${state.players.length}</strong>
-          <span class="kpiLabel">Registered Players</span>
+          <span class="kpiLabel">Squad Players</span>
         </div>
         <span class="kpiIconBox" aria-hidden="true">${tabIcon('squad')}</span>
       </button>
@@ -511,21 +438,21 @@ function renderHomeTab() {
           <strong class="kpiValue num">${state.honours.length}</strong>
           <span class="kpiLabel">Team Honours</span>
         </div>
-        <span class="kpiIconBox" aria-hidden="true">${tabIcon('gallery')}</span>
+        <span class="kpiIconBox" aria-hidden="true">${drawerIcon('honours')}</span>
       </button>
       <button type="button" class="kpiCardBtn" data-public-tab="matches">
         <div>
           <strong class="kpiValue num">${state.matches.length}</strong>
-          <span class="kpiLabel">Matches Tracked</span>
+          <span class="kpiLabel">Matches</span>
         </div>
         <span class="kpiIconBox" aria-hidden="true">${tabIcon('matches')}</span>
       </button>
       <button type="button" class="kpiCardBtn" data-public-tab="gallery">
         <div>
           <strong class="kpiValue num">${state.gallery.length}</strong>
-          <span class="kpiLabel">Photo Archive</span>
+          <span class="kpiLabel">Gallery Photos</span>
         </div>
-        <span class="kpiIconBox" aria-hidden="true">${tabIcon('more')}</span>
+        <span class="kpiIconBox" aria-hidden="true">${tabIcon('gallery')}</span>
       </button>
     </section>
 
@@ -761,14 +688,19 @@ function renderRecordsAndTournamentsList() {
 
 function renderHonoursList() {
   return `
-    <div class="stackList">
+    <div class="honoursGrid">
       ${state.honours.map(h => `
-        <article class="surfaceCard honourRow">
-          <img src="${escHtml(h.image || currentLogo())}" alt="${escHtml(h.title)}" data-zoom-src="${escHtml(h.image || currentLogo())}" data-zoom-cap="${escHtml(`${h.year} · ${h.title}`)}" referrerPolicy="no-referrer" onerror="this.onerror=null;this.src='${CLUB_INFO.logoPath}'">
-          <div>
-            <span class="metaCode">${escHtml(h.year)}</span>
-            <strong style="display:block;font-size:1.05rem;">${escHtml(formatTextCase(h.title))}</strong>
-            <span style="font-size:0.8125rem;color:var(--ink-muted);">${escHtml(formatTextCase(h.sub))}</span>
+        <article class="honourCard">
+          <button type="button" class="honourMediaBtn" data-zoom-src="${escHtml(h.image || currentLogo())}" data-zoom-cap="${escHtml(`${h.year} · ${h.title} — ${h.sub}`)}">
+            <img src="${escHtml(h.image || currentLogo())}" alt="${escHtml(h.title)}" referrerPolicy="no-referrer" onerror="this.onerror=null;this.src='${CLUB_INFO.logoPath}'">
+          </button>
+          <div class="honourCardBody">
+            <div class="honourCardTop">
+              <span class="metaCode">${escHtml(h.year)}</span>
+              <span class="honourTapHint">Tap to view full</span>
+            </div>
+            <h3 class="honourCardTitle">${escHtml(formatTextCase(h.title))}</h3>
+            <p class="honourCardSub">${escHtml(formatTextCase(h.sub))}</p>
           </div>
         </article>
       `).join('')}
@@ -876,7 +808,6 @@ function renderMoreTab() {
         </div>
         <div class="rowActions">
           <button type="button" class="btnSecondary btnSm" id="btnRefreshClub">Sync Team Data</button>
-          <button type="button" class="btnSecondary btnSm" id="btnGoWelcome">Welcome Screen</button>
           ${showWebInstall ? `<button type="button" class="btnPrimary btnSm" id="btnInstallWebApp">Install App</button>` : ''}
         </div>
       </div>
@@ -1084,7 +1015,7 @@ function renderTeamSubpage() {
         </p>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
           ${showWebInstall ? `<button type="button" class="btnPrimary btnSm" id="btnInstallWebApp">Install Web App</button>` : ''}
-          <button type="button" class="btnSecondary btnSm" id="btnGoWelcome">View Welcome Screen</button>
+          <button type="button" class="btnSecondary btnSm" data-public-tab="home">Back to Home</button>
         </div>
       </div>
     `;
@@ -1348,8 +1279,7 @@ function renderApp() {
   if (!root) return;
 
   let html = '';
-  if (ui.screen === 'welcome') html = renderWelcomeScreen();
-  else if (ui.screen === 'playerDetail') html = renderPlayerDetailPage();
+  if (ui.screen === 'playerDetail') html = renderPlayerDetailPage();
   else if (ui.screen === 'subpage') html = renderTeamSubpage();
   else if (ui.screen === 'login') html = renderLoginScreen();
   else if (ui.screen === 'admin') html = renderAdminDashboard();
@@ -1417,14 +1347,6 @@ function bindScreenEvents() {
 
   q('btnBrandHome')?.addEventListener('click', () => {
     navigateTo({ screen: 'public', publicTab: 'home' });
-  });
-
-  q('btnContinueGuest')?.addEventListener('click', () => {
-    navigateTo({ screen: 'public', publicTab: 'home' });
-  });
-
-  q('btnGoWelcome')?.addEventListener('click', () => {
-    navigateTo({ screen: 'welcome' });
   });
 
   const goAdminLogin = () => {
