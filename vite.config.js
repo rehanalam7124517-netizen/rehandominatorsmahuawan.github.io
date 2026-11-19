@@ -5,6 +5,7 @@ import path from 'node:path';
 function copyWebAssetsPlugin() {
   const safeStaticFiles = [
     'firebase-config.js',
+    'sw.js',
     'apple-touch-icon.png',
     'pwa-192x192.png',
     'pwa-512x512.png',
@@ -63,6 +64,9 @@ function copyWebAssetsPlugin() {
         const ext = path.extname(assetPath).toLowerCase();
         res.statusCode = 200;
         res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
+        if (path.basename(assetPath) === 'sw.js') {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
         fs.createReadStream(assetPath).pipe(res);
       });
     },
@@ -85,6 +89,42 @@ function copyWebAssetsPlugin() {
   };
 }
 
+import { ADMIN_HASH, PLAYER_HASHES } from './scripts/portal-hashes.mjs';
+
+function rdmPortalPlugin() {
+  const virtualId = 'virtual:rdm-portal';
+  const resolvedId = '\0' + virtualId;
+  return {
+    name: 'rdm-website-portal',
+    resolveId(id) {
+      if (id === virtualId) return resolvedId;
+    },
+    load(id) {
+      if (id !== resolvedId) return null;
+      return `
+        const ADMIN_HASH = ${JSON.stringify(ADMIN_HASH)};
+        const PLAYER_HASHES = ${JSON.stringify(PLAYER_HASHES)};
+        export const PORTAL_ENABLED = true;
+        async function sha256Hex(text) {
+          const buf = new TextEncoder().encode(String(text || '').trim());
+          const hash = await crypto.subtle.digest('SHA-256', buf);
+          return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        export async function resolvePortalKey(rawKey) {
+          const clean = String(rawKey || '').trim();
+          if (!clean || !globalThis.crypto?.subtle) return null;
+          const digest = await sha256Hex(clean);
+          if (digest === ADMIN_HASH) return { role: 'admin', playerId: null };
+          if (Object.prototype.hasOwnProperty.call(PLAYER_HASHES, digest)) {
+            return { role: 'player', playerId: PLAYER_HASHES[digest] };
+          }
+          return null;
+        }
+      `;
+    }
+  };
+}
+
 export default defineConfig({
   root: path.resolve(process.cwd(), 'android-web'),
   publicDir: false,
@@ -103,5 +143,5 @@ export default defineConfig({
     outDir: path.resolve(process.cwd(), 'dist'),
     emptyOutDir: true
   },
-  plugins: [copyWebAssetsPlugin()]
+  plugins: [rdmPortalPlugin(), copyWebAssetsPlugin()]
 });

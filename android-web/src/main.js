@@ -6,21 +6,25 @@ import {
   resolvePlayerImage,
   safeExternalUrl
 } from './data/roster.js';
+import { PORTAL_ENABLED, resolvePortalKey } from 'virtual:rdm-portal';
 import {
   adminDeleteDoc,
   adminRemovePlayer,
   adminSetPinned,
   adminUpdatePlayer,
   adminUpsertDoc,
+  canEditPlayerPortal,
   compressImageFile,
   isVerifiedAdmin,
   loadClubData,
   loginWithEmailPassword,
   logoutAccount,
   savePlayerAvailability,
+  savePlayerPortalProfile,
   sendResetPasswordEmail,
   state,
-  subscribeAuthChanges
+  subscribeAuthChanges,
+  subscribeClubDataRealtime
 } from './services/firebase-service.js';
 import {
   canInstallWebPwa,
@@ -36,6 +40,7 @@ import {
   closeTopOverlay,
   downloadPlayerProfileCard,
   hasOpenOverlay,
+  openAvatarCropper,
   openConfirmSheet,
   openFormSheet,
   openLightbox,
@@ -51,7 +56,9 @@ const THEMES = [
 ];
 
 const ui = {
-  screen: 'public', // 'public' | 'playerDetail' | 'subpage' | 'login' | 'admin'
+  screen: 'public', // 'public' | 'playerDetail' | 'subpage' | 'admin' | 'playerPortal' | 'portalAuth'
+  portalMode: 'public', // 'public' | 'admin' | 'player'
+  portalPlayerId: null,
   publicTab: 'home', // 'home' | 'squad' | 'matches' | 'gallery' | 'more'
   matchesSubTab: 'fixtures', // 'fixtures' | 'xi' | 'tournaments'
   galleryAlbum: 'ALL',
@@ -94,7 +101,8 @@ function sameRoute(a, b) {
 function buildRouteHash(r) {
   if (r.screen === 'playerDetail' && r.detailPlayerId) return `#player-${r.detailPlayerId}`;
   if (r.screen === 'subpage') return `#section-${r.morePage}`;
-  if (r.screen === 'login') return '#admin-login';
+  if (r.screen === 'playerPortal' && ui.portalPlayerId) return `#portal-${ui.portalPlayerId}`;
+  if (r.screen === 'portalAuth') return '#portal-verify';
   if (r.screen === 'admin') return `#admin-${r.adminTab}`;
   return `#${r.publicTab || 'home'}`;
 }
@@ -112,9 +120,18 @@ function applyRouteSnapshot(r) {
 }
 
 function navigateTo(patch, { push = true, replace = false } = {}) {
-  if (patch.screen === 'admin' && !isVerifiedAdmin()) {
-    showToast('Admin authorization required');
-    patch = { ...patch, screen: 'login' };
+  if (patch.screen === 'admin') {
+    if (!PORTAL_ENABLED || ui.portalMode !== 'admin') {
+      patch = { screen: 'public', publicTab: 'home' };
+    } else if (!isVerifiedAdmin()) {
+      patch = { ...patch, screen: 'portalAuth' };
+    }
+  }
+  if (patch.screen === 'playerPortal' && (!PORTAL_ENABLED || ui.portalMode !== 'player' || !ui.portalPlayerId)) {
+    patch = { screen: 'public', publicTab: 'home' };
+  }
+  if (patch.screen === 'portalAuth' && (!PORTAL_ENABLED || ui.portalMode !== 'admin')) {
+    patch = { screen: 'public', publicTab: 'home' };
   }
 
   const next = { ...snapshotRoute(), ...patch };
@@ -253,9 +270,7 @@ function renderTopBar({ title = 'RDM Official', showBack = false, showPublicNav 
          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
        </button>`;
 
-  const defaultRight = rightActionHtml || (isVerifiedAdmin()
-    ? `<button type="button" class="topActionBtn is-primary" id="btnTopAdminDash">Admin Console</button>`
-    : `<button type="button" class="topActionBtn" id="btnPickTheme">Theme</button>`);
+  const defaultRight = rightActionHtml || `<button type="button" class="topActionBtn" id="btnPickTheme">Theme</button>`;
 
   return `
     <header class="topBar">
@@ -283,7 +298,6 @@ function renderTopBar({ title = 'RDM Official', showBack = false, showPublicNav 
 }
 
 function renderSideDrawer() {
-  const isAdmin = isVerifiedAdmin();
   const teamPages = [
     ['xi', 'Playing XI'],
     ['records', 'Team Records'],
@@ -295,6 +309,12 @@ function renderSideDrawer() {
     ['about', 'About RDM'],
     ['download', 'Get Android App']
   ];
+
+  const portalQuickBtn = (PORTAL_ENABLED && ui.portalMode === 'admin')
+    ? `<button type="button" class="btnPrimary btnSm btnFull" id="btnReturnPortal">Open Admin Portal</button>`
+    : (PORTAL_ENABLED && ui.portalMode === 'player' && ui.portalPlayerId)
+      ? `<button type="button" class="btnPrimary btnSm btnFull" id="btnReturnPortal">My Profile Control</button>`
+      : '';
 
   return `
     <div class="drawerOverlay ${ui.drawerOpen ? 'open' : ''}" id="drawerOverlay" role="dialog" aria-modal="true" aria-hidden="${ui.drawerOpen ? 'false' : 'true'}" aria-label="Team navigation menu">
@@ -324,10 +344,7 @@ function renderSideDrawer() {
 
         <div class="drawerFooter">
           <button type="button" class="btnSecondary btnSm btnFull" id="btnDrawerTheme">Theme · ${escHtml(getThemeLabel(ui.theme))}</button>
-          ${isAdmin
-            ? `<button type="button" class="btnPrimary btnSm btnFull" id="btnDrawerAdmin">Admin Console</button>
-               <button type="button" class="btnDanger btnSm btnFull" id="btnLogout">Admin Logout</button>`
-            : `<button type="button" class="btnGhost btnSm btnFull" id="btnDrawerAdminLogin">Admin Access</button>`}
+          ${portalQuickBtn}
         </div>
       </aside>
     </div>
@@ -335,7 +352,6 @@ function renderSideDrawer() {
 }
 
 function renderWebFooter() {
-  const isAdmin = isVerifiedAdmin();
   return `
     <footer class="webFooter">
       <div class="webFooterInner">
@@ -354,7 +370,6 @@ function renderWebFooter() {
           <button type="button" class="webFooterLink" data-open-subpage="records">Records</button>
           <button type="button" class="webFooterLink" data-open-subpage="honours">Honours</button>
           <button type="button" class="webFooterLink" data-ext-url="${escHtml(CLUB_INFO.captainContactUrl)}">WhatsApp Captain ↗</button>
-          <button type="button" class="webFooterLink" id="btnFooterAdmin">${isAdmin ? 'Admin Console' : 'Admin Access'}</button>
         </div>
       </div>
     </footer>
@@ -752,7 +767,6 @@ function renderGalleryTab() {
 }
 
 function renderMoreTab() {
-  const isAdmin = isVerifiedAdmin();
   const showWebInstall = canInstallWebPwa();
 
   return `
@@ -809,22 +823,6 @@ function renderMoreTab() {
         <div class="rowActions">
           <button type="button" class="btnSecondary btnSm" id="btnRefreshClub">Sync Team Data</button>
           ${showWebInstall ? `<button type="button" class="btnPrimary btnSm" id="btnInstallWebApp">Install App</button>` : ''}
-        </div>
-      </div>
-    </section>
-
-    <section class="surfaceCard">
-      <div class="sectionHeader">
-        <div>
-          <span class="sectionKicker">Management</span>
-          <h3 class="sectionTitle" style="font-size:1.2rem;">Team Administration</h3>
-          <p class="sectionSub">${isAdmin ? `Signed in as Admin (${escHtml(state.user?.email || '')})` : 'Player &amp; Match management access for verified Admin'}</p>
-        </div>
-        <div class="rowActions">
-          ${isAdmin
-            ? `<button type="button" class="btnPrimary btnSm" id="btnOpenAdminDash">Open Console</button>
-               <button type="button" class="btnDanger btnSm" id="btnLogout">Logout</button>`
-            : `<button type="button" class="btnSecondary btnSm" id="btnAdminLoginEntry">Admin Login</button>`}
         </div>
       </div>
     </section>
@@ -1036,25 +1034,26 @@ function renderTeamSubpage() {
   `;
 }
 
-/* ==================== ADMIN LOGIN & ADMIN CONSOLE ==================== */
+/* ==================== PRIVATE PORTALS (WEBSITE ?key= LINK ONLY) ==================== */
 
-function renderLoginScreen() {
+function renderAdminPortalAuthScreen() {
+  if (!PORTAL_ENABLED || ui.portalMode !== 'admin') return renderPublicScreen();
   return `
     ${renderTopBar({
-      title: 'Admin Login',
-      showBack: true,
+      title: 'Admin Private Portal',
+      showBack: false,
       showPublicNav: false,
-      rightActionHtml: '<div></div>'
+      rightActionHtml: `<button type="button" class="topActionBtn" id="btnPortalPublicView">Public View</button>`
     })}
     <div class="loginCardWrap">
       <div class="surfaceCard">
         <div class="loginLogoBox">
           <img src="${escHtml(currentLogo())}" alt="RDM Crest" referrerPolicy="no-referrer">
         </div>
-        <h2 class="sectionTitle" style="text-align:center;">Admin Console Login</h2>
-        <p class="sectionSub" style="text-align:center;margin-bottom:16px;">Sign in with your verified Admin Firebase account to add or manage players, matches, and team media.</p>
+        <h2 class="sectionTitle" style="text-align:center;">Verify Admin Cloud Sync</h2>
+        <p class="sectionSub" style="text-align:center;margin-bottom:16px;">Your private Admin link is active. Verify your Firebase Admin session once on this browser so changes sync live to both the Website and Android App.</p>
         ${ui.loginError ? `<div class="errorBanner" style="margin-bottom:12px;">${escHtml(ui.loginError)}</div>` : ''}
-        <form id="rdmLoginForm" class="formStack">
+        <form id="rdmPortalAuthForm" class="formStack">
           <label class="fieldBlock">
             <span>Admin Email</span>
             <input id="loginEmail" name="email" type="email" autocomplete="email" placeholder="admin@example.com" required>
@@ -1067,7 +1066,7 @@ function renderLoginScreen() {
             </div>
           </label>
           <button type="submit" class="btnPrimary btnFull" id="btnLoginSubmit" ${ui.loginBusy ? 'disabled' : ''}>
-            ${ui.loginBusy ? 'Verifying Admin…' : 'Sign In as Admin'}
+            ${ui.loginBusy ? 'Verifying Cloud Session…' : 'Unlock Admin Portal'}
           </button>
           <button type="button" class="btnGhost btnFull" id="btnForgotPw">Forgot Password?</button>
         </form>
@@ -1076,8 +1075,151 @@ function renderLoginScreen() {
   `;
 }
 
+function renderPlayerPortalScreen() {
+  if (!PORTAL_ENABLED || ui.portalMode !== 'player' || !ui.portalPlayerId) return renderPublicScreen();
+  const player = state.players.find(p => p.id === ui.portalPlayerId);
+  if (!player) {
+    return `
+      ${renderTopBar({
+        title: 'Player Portal',
+        showBack: false,
+        showPublicNav: false,
+        rightActionHtml: `<button type="button" class="topActionBtn" id="btnPortalPublicView">Public View</button>`
+      })}
+      <div class="tabContent fullPageContent">
+        <div class="emptyState">Player profile not found.</div>
+      </div>
+    `;
+  }
+
+  const av = avatarAttrs(player.image);
+  const stat = state.stats.find(s => s.playerId === player.id);
+  const availability = state.availability.find(a => a.playerId === player.id)?.status || 'NOT SET';
+  const code = PLAYER_CODES[player.id] || player.id;
+  const socials = (Array.isArray(player.socials) ? player.socials : []).map((s, idx) => (
+    typeof s === 'string'
+      ? { name: `Social ${idx + 1}`, url: s }
+      : { name: s?.name || `Social ${idx + 1}`, url: s?.url || '' }
+  )).filter(s => safeExternalUrl(s.url));
+  const cloudVerified = canEditPlayerPortal(player.id);
+
+  const hasStats = stat && (
+    Number(stat.matches) > 0 ||
+    Number(stat.runs) > 0 ||
+    Number(stat.wickets) > 0 ||
+    Number(stat.highScore) > 0
+  );
+
+  return `
+    ${renderTopBar({
+      title: `${formatTextCase(player.name)} · Portal`,
+      showBack: false,
+      showPublicNav: false,
+      rightActionHtml: `<button type="button" class="topActionBtn" id="btnPortalPublicView">Public View</button>`
+    })}
+    <div class="tabContent fullPageContent">
+      ${cloudVerified ? `
+        <div class="infoBanner">
+          <span>Cloud Sync Active (${escHtml(state.user?.email || 'Verified')}) — Edits update Website &amp; Android App live.</span>
+          <button type="button" class="btnSecondary btnSm" id="btnLogout">Sign Out</button>
+        </div>
+      ` : `
+        <div class="infoBanner">
+          <span>Verify your Firebase sync account once to publish edits live to Website &amp; Android App.</span>
+          <button type="button" class="btnPrimary btnSm" id="btnPlayerPortalVerify">Connect Sync</button>
+        </div>
+      `}
+
+      <section class="fullProfileHero">
+        <img class="fullProfileAvatar ${av.cls}" src="${escHtml(av.src)}" alt="${escHtml(player.name)}" referrerPolicy="no-referrer" onerror="this.onerror=null;this.src='${CLUB_INFO.logoPath}'">
+        <div>
+          <span class="metaCode">${escHtml(code)} · ${escHtml(player.id)}${player.jersey ? ' · #' + escHtml(player.jersey) : ''}</span>
+          <h1 class="fullProfileName">${escHtml(formatTextCase(player.name))}</h1>
+          <div class="fullProfileRole">${escHtml(formatTextCase(player.role))}</div>
+          ${player.detail ? `<p class="fullProfileMeta richText" style="margin:6px auto 0;">${escHtml(formatTextCase(player.detail))}</p>` : ''}
+          ${player.nick ? `<p class="sectionSub" style="margin-top:6px;">Nickname: ${escHtml(formatTextCase(player.nick))}</p>` : ''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;">
+          <button type="button" class="btnPrimary btnSm" id="btnPortalPhoto">Change Photo</button>
+          <button type="button" class="btnSecondary btnSm" id="btnPortalResetPhoto">Use RDM Logo</button>
+          <button type="button" class="btnSecondary btnSm" id="btnDownloadPortalCard">Download Card</button>
+        </div>
+      </section>
+
+      <section class="surfaceCard">
+        <div class="sectionHeader" style="margin-bottom:10px;">
+          <div>
+            <span class="sectionKicker">Match Status</span>
+            <h2 class="sectionTitle" style="font-size:1.25rem;">My Match Availability</h2>
+            <p class="sectionSub" style="font-weight:700;color:var(--brand-blue);">Current: ${escHtml(formatTextCase(availability))}</p>
+          </div>
+          <div class="rowActions">
+            <button type="button" class="btnPrimary btnSm" id="btnPortalAvailYes">Available</button>
+            <button type="button" class="btnSecondary btnSm" id="btnPortalAvailNo">Unavailable</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="surfaceCard">
+        <div class="sectionHeader" style="margin-bottom:10px;">
+          <div>
+            <span class="sectionKicker">My Profile Control</span>
+            <h2 class="sectionTitle" style="font-size:1.25rem;">Personal Info &amp; Bio</h2>
+          </div>
+          <button type="button" class="btnPrimary btnSm" id="btnPortalEditProfile">Edit Info</button>
+        </div>
+        <p style="margin:0 0 6px;font-size:0.86rem;color:var(--ink-secondary);"><strong>Jersey:</strong> ${player.jersey ? '#' + escHtml(player.jersey) : 'Not set'} · <strong>Nickname:</strong> ${player.nick ? escHtml(formatTextCase(player.nick)) : 'Not set'}</p>
+        <p class="richText" style="margin:0;font-size:0.88rem;color:var(--ink-secondary);">${player.bio ? escHtml(formatTextCase(player.bio)) : 'No bio added yet.'}</p>
+      </section>
+
+      <section class="surfaceCard">
+        <div class="sectionHeader" style="margin-bottom:10px;">
+          <div>
+            <span class="sectionKicker">My Socials (Max 3)</span>
+            <h2 class="sectionTitle" style="font-size:1.25rem;">Official Social Links</h2>
+          </div>
+          ${socials.length < 3 ? `<button type="button" class="btnPrimary btnSm" id="btnPortalAddSocial">+ Add Social</button>` : ''}
+        </div>
+        ${socials.length ? socials.map((s, idx) => `
+          <div class="listRowItem">
+            <div style="min-width:0;">
+              <strong style="display:block;font-size:0.88rem;">${escHtml(formatTextCase(s.name))}</strong>
+              <span style="font-size:0.74rem;color:var(--ink-muted);word-break:break-all;">${escHtml(s.url)}</span>
+            </div>
+            <div class="rowActions">
+              <button type="button" class="btnSecondary btnSm" data-portal-ext="${escHtml(safeExternalUrl(s.url))}">Open</button>
+              <button type="button" class="btnDanger btnSm" data-portal-del-social="${idx}">Remove</button>
+            </div>
+          </div>
+        `).join('') : '<p class="sectionSub">No social links added yet.</p>'}
+      </section>
+
+      <section class="surfaceCard">
+        <span class="sectionKicker">Verified Performance</span>
+        <h2 class="sectionTitle" style="font-size:1.25rem;margin-bottom:10px;">Career Statistics</h2>
+        ${hasStats ? `
+          <div class="statGrid4">
+            <div class="statCell"><strong class="num">${Number(stat.matches || 0)}</strong><span>Matches</span></div>
+            <div class="statCell"><strong class="num">${Number(stat.runs || 0)}</strong><span>Runs</span></div>
+            <div class="statCell"><strong class="num">${Number(stat.highScore || 0)}</strong><span>High Score</span></div>
+            <div class="statCell"><strong class="num">${Number(stat.wickets || 0)}</strong><span>Wickets</span></div>
+          </div>
+          <div class="statSubRow num">
+            <span>4s/6s: ${Number(stat.fours || 0)}/${Number(stat.sixes || 0)}</span>
+            <span>50s/100s: ${Number(stat.fifties || 0)}/${Number(stat.hundreds || 0)}</span>
+            <span>SR: ${Number(stat.strikeRate || 0)}</span>
+            <span>Econ: ${Number(stat.economy || 0)}</span>
+            <span>Best: ${escHtml(stat.bestBowling || '—')}</span>
+          </div>
+        ` : '<p class="sectionSub">Career statistics are updated by team management after official matches.</p>'}
+      </section>
+    </div>
+  `;
+}
+
 function renderAdminDashboard() {
-  if (!isVerifiedAdmin()) return renderLoginScreen();
+  if (!PORTAL_ENABLED || ui.portalMode !== 'admin') return renderPublicScreen();
+  if (!isVerifiedAdmin()) return renderAdminPortalAuthScreen();
 
   let tabBody = '';
   if (ui.adminTab === 'overview') {
@@ -1281,7 +1423,8 @@ function renderApp() {
   let html = '';
   if (ui.screen === 'playerDetail') html = renderPlayerDetailPage();
   else if (ui.screen === 'subpage') html = renderTeamSubpage();
-  else if (ui.screen === 'login') html = renderLoginScreen();
+  else if (ui.screen === 'playerPortal') html = renderPlayerPortalScreen();
+  else if (ui.screen === 'portalAuth') html = renderAdminPortalAuthScreen();
   else if (ui.screen === 'admin') html = renderAdminDashboard();
   else html = renderPublicScreen();
 
@@ -1349,17 +1492,14 @@ function bindScreenEvents() {
     navigateTo({ screen: 'public', publicTab: 'home' });
   });
 
-  const goAdminLogin = () => {
-    ui.loginError = '';
-    if (isVerifiedAdmin()) navigateTo({ screen: 'admin', adminTab: 'overview' });
-    else navigateTo({ screen: 'login' });
-  };
-  q('btnAdminLoginEntry')?.addEventListener('click', goAdminLogin);
-  q('btnDrawerAdminLogin')?.addEventListener('click', goAdminLogin);
-  q('btnFooterAdmin')?.addEventListener('click', goAdminLogin);
-  q('btnTopAdminDash')?.addEventListener('click', () => navigateTo({ screen: 'admin', adminTab: 'overview' }));
-  q('btnOpenAdminDash')?.addEventListener('click', () => navigateTo({ screen: 'admin', adminTab: 'overview' }));
-  q('btnDrawerAdmin')?.addEventListener('click', () => navigateTo({ screen: 'admin', adminTab: 'overview' }));
+  q('btnPortalPublicView')?.addEventListener('click', () => {
+    navigateTo({ screen: 'public', publicTab: 'home' });
+  });
+
+  q('btnReturnPortal')?.addEventListener('click', () => {
+    if (ui.portalMode === 'admin') navigateTo({ screen: 'admin', adminTab: 'overview' });
+    else if (ui.portalMode === 'player' && ui.portalPlayerId) navigateTo({ screen: 'playerPortal' });
+  });
 
   q('btnRefreshClub')?.addEventListener('click', async () => {
     showToast('Syncing team data...');
@@ -1381,14 +1521,15 @@ function bindScreenEvents() {
 
   q('btnLogout')?.addEventListener('click', () => {
     openConfirmSheet({
-      title: 'Confirm Logout',
-      message: 'Sign out of your Admin session on this device?',
-      confirmLabel: 'Logout',
+      title: 'Confirm Sign Out',
+      message: 'Sign out of Cloud Sync on this browser?',
+      confirmLabel: 'Sign Out',
       danger: true,
       onConfirm: async () => {
         await logoutAccount();
         ui.drawerOpen = false;
-        navigateTo({ screen: 'public', publicTab: 'home' }, { replace: true });
+        if (ui.portalMode === 'admin') navigateTo({ screen: 'portalAuth' }, { replace: true });
+        else renderApp();
         showToast('Signed out');
       }
     });
@@ -1406,9 +1547,9 @@ function bindScreenEvents() {
   q('btnForgotPw')?.addEventListener('click', () => {
     const emailPrefill = q('loginEmail')?.value?.trim() || '';
     openFormSheet({
-      title: 'Reset Admin Password',
-      subtitle: 'Receive a Firebase password reset link on your registered Admin email',
-      fields: [{ name: 'email', label: 'Registered Admin Email', type: 'email', value: emailPrefill, required: true }],
+      title: 'Reset Password',
+      subtitle: 'Receive a Firebase password reset link on your registered email',
+      fields: [{ name: 'email', label: 'Registered Email', type: 'email', value: emailPrefill, required: true }],
       submitLabel: 'Send Reset Link',
       onSubmit: async d => {
         await sendResetPasswordEmail(d.email);
@@ -1417,7 +1558,7 @@ function bindScreenEvents() {
     });
   });
 
-  q('rdmLoginForm')?.addEventListener('submit', async e => {
+  q('rdmPortalAuthForm')?.addEventListener('submit', async e => {
     e.preventDefault();
     const email = q('loginEmail')?.value || '';
     const password = q('loginPassword')?.value || '';
@@ -1430,11 +1571,11 @@ function bindScreenEvents() {
       ui.loginBusy = false;
       if (res.role !== 'admin') {
         await logoutAccount();
-        ui.loginError = 'Admin authorization required for RDM Team Management.';
+        ui.loginError = 'Admin authorization required for this private link.';
         renderApp();
         return;
       }
-      showToast('Admin verified');
+      showToast('Admin Cloud Sync verified');
       navigateTo({ screen: 'admin', adminTab: 'overview' }, { replace: true });
     } catch (err) {
       ui.loginBusy = false;
@@ -1446,11 +1587,13 @@ function bindScreenEvents() {
       } else if (code.includes('too-many-requests')) {
         ui.loginError = 'Too many attempts. Please wait before trying again.';
       } else {
-        ui.loginError = 'Login failed. Check your network and credentials.';
+        ui.loginError = 'Verification failed. Check your network and credentials.';
       }
       renderApp();
     }
   });
+
+  bindPlayerPortalEvents();
 
   document.querySelectorAll('[data-public-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1530,6 +1673,150 @@ function bindScreenEvents() {
   });
 
   bindAdminDashboardEvents();
+}
+
+function openPlayerPortalAuthPrompt(player) {
+  openFormSheet({
+    title: `Connect Sync · ${formatTextCase(player.name)}`,
+    subtitle: 'Sign in with your assigned Firebase sync account to publish changes live to Website & Android App.',
+    fields: [
+      { name: 'email', label: 'Email', type: 'email', required: true },
+      { name: 'password', label: 'Password', type: 'password', required: true }
+    ],
+    submitLabel: 'Connect Sync',
+    onSubmit: async d => {
+      const res = await loginWithEmailPassword(d.email, d.password);
+      if (res.role !== 'admin' && res.playerId !== player.id) {
+        await logoutAccount();
+        throw new Error(`This account belongs to ${res.playerId || 'another user'}, not ${player.id}`);
+      }
+      renderApp();
+      showToast('Cloud sync connected');
+    }
+  });
+}
+
+function bindPlayerPortalEvents() {
+  if (!PORTAL_ENABLED || ui.portalMode !== 'player' || !ui.portalPlayerId || ui.screen !== 'playerPortal') return;
+  const player = state.players.find(p => p.id === ui.portalPlayerId);
+  if (!player) return;
+
+  const q = id => document.getElementById(id);
+  const ensureCloudSync = () => {
+    if (canEditPlayerPortal(player.id)) return true;
+    openPlayerPortalAuthPrompt(player);
+    return false;
+  };
+
+  q('btnPlayerPortalVerify')?.addEventListener('click', () => openPlayerPortalAuthPrompt(player));
+
+  q('btnDownloadPortalCard')?.addEventListener('click', async () => {
+    try {
+      await downloadPlayerProfileCard({ player, brandLogo: currentLogo() });
+    } catch (_) {
+      showToast('Unable to export profile card');
+    }
+  });
+
+  q('btnPortalPhoto')?.addEventListener('click', () => {
+    if (!ensureCloudSync()) return;
+    openAvatarCropper({
+      onSaveDataUrl: async dataUrl => {
+        await savePlayerPortalProfile(player.id, { image: dataUrl });
+        renderApp();
+        showToast('Profile photo updated live');
+      }
+    });
+  });
+
+  q('btnPortalResetPhoto')?.addEventListener('click', () => {
+    if (!ensureCloudSync()) return;
+    openConfirmSheet({
+      title: 'Use RDM Crest',
+      message: 'Reset your profile photo to the official RDM logo?',
+      confirmLabel: 'Reset Photo',
+      onConfirm: async () => {
+        await savePlayerPortalProfile(player.id, { image: '' });
+        renderApp();
+        showToast('Photo reset to RDM logo');
+      }
+    });
+  });
+
+  q('btnPortalEditProfile')?.addEventListener('click', () => {
+    if (!ensureCloudSync()) return;
+    openFormSheet({
+      title: `Edit ${formatTextCase(player.name)}`,
+      fields: [
+        { name: 'jersey', label: 'Jersey Number', value: player.jersey || '' },
+        { name: 'nick', label: 'Nickname', value: player.nick || '' },
+        { name: 'bio', label: 'Bio', type: 'textarea', value: player.bio || '', placeholder: 'Write your cricket bio (spaces & Enter preserved)', rows: 4 }
+      ],
+      onSubmit: async d => {
+        await savePlayerPortalProfile(player.id, { jersey: d.jersey, nick: d.nick, bio: d.bio });
+        renderApp();
+        showToast('Profile updated live');
+      }
+    });
+  });
+
+  const setAvail = async status => {
+    if (!ensureCloudSync()) return;
+    try {
+      await savePlayerAvailability(player.id, status);
+      renderApp();
+      showToast(`Availability: ${status}`);
+    } catch (err) {
+      showToast(err?.message || 'Failed to save availability');
+    }
+  };
+  q('btnPortalAvailYes')?.addEventListener('click', () => setAvail('AVAILABLE'));
+  q('btnPortalAvailNo')?.addEventListener('click', () => setAvail('UNAVAILABLE'));
+
+  q('btnPortalAddSocial')?.addEventListener('click', () => {
+    if (!ensureCloudSync()) return;
+    const existing = Array.isArray(player.socials) ? player.socials : [];
+    if (existing.length >= 3) return showToast('Maximum 3 social links allowed');
+    openFormSheet({
+      title: 'Add Social Link',
+      fields: [
+        { name: 'name', label: 'Platform Name', placeholder: 'Instagram / YouTube', required: true },
+        { name: 'url', label: 'Profile URL', placeholder: 'https://...', required: true }
+      ],
+      onSubmit: async d => {
+        const clean = safeExternalUrl(d.url);
+        if (!clean) throw new Error('Valid https:// link required');
+        const nextSocials = [...existing, { name: d.name, url: clean }].slice(0, 3);
+        await savePlayerPortalProfile(player.id, { socials: nextSocials });
+        renderApp();
+        showToast('Social link added live');
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-portal-ext]').forEach(btn => {
+    btn.addEventListener('click', () => openExternalUrl(btn.dataset.portalExt));
+  });
+
+  document.querySelectorAll('[data-portal-del-social]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!ensureCloudSync()) return;
+      const idx = Number(btn.dataset.portalDelSocial);
+      const existing = Array.isArray(player.socials) ? [...player.socials] : [];
+      existing.splice(idx, 1);
+      openConfirmSheet({
+        title: 'Remove Social Link',
+        message: 'Remove this social link from your profile?',
+        confirmLabel: 'Remove',
+        danger: true,
+        onConfirm: async () => {
+          await savePlayerPortalProfile(player.id, { socials: existing });
+          renderApp();
+          showToast('Social link removed');
+        }
+      });
+    });
+  });
 }
 
 function bindAdminDashboardEvents() {
@@ -1924,6 +2211,23 @@ function handleHardwareBack() {
 async function bootstrap() {
   applyTheme(ui.theme);
 
+  if (PORTAL_ENABLED) {
+    try {
+      const rawKey = new URLSearchParams(window.location.search).get('key') || '';
+      if (rawKey.trim()) {
+        const resolved = await resolvePortalKey(rawKey);
+        if (resolved?.role === 'admin') {
+          ui.portalMode = 'admin';
+          ui.screen = 'portalAuth';
+        } else if (resolved?.role === 'player' && resolved.playerId) {
+          ui.portalMode = 'player';
+          ui.portalPlayerId = resolved.playerId;
+          ui.screen = 'playerPortal';
+        }
+      }
+    } catch (_) {}
+  }
+
   // Initialize root route in history stack so phone back works 1 step at a time
   const initialRoute = snapshotRoute();
   navStack.length = 0;
@@ -1963,10 +2267,24 @@ async function bootstrap() {
 
   await loadClubData();
 
+  subscribeClubDataRealtime(() => {
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+    if (!hasOpenOverlay() && !isTyping) {
+      renderApp();
+    }
+  });
+
   subscribeAuthChanges(({ role, verified }) => {
-    if (verified && role === 'admin') {
-      navigateTo({ screen: 'admin', adminTab: 'overview' }, { replace: true });
-    } else if (!verified && ui.screen === 'admin') {
+    if (ui.portalMode === 'admin') {
+      if (verified && role === 'admin') {
+        navigateTo({ screen: 'admin', adminTab: 'overview' }, { replace: true });
+      } else {
+        navigateTo({ screen: 'portalAuth' }, { replace: true });
+      }
+    } else if (ui.portalMode === 'player' && ui.portalPlayerId) {
+      renderApp();
+    } else if (ui.screen === 'admin' || ui.screen === 'portalAuth' || ui.screen === 'playerPortal') {
       navigateTo({ screen: 'public', publicTab: 'home' }, { replace: true });
     } else {
       renderApp();

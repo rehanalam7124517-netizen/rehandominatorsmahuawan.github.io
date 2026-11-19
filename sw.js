@@ -1,4 +1,4 @@
-const CACHE = 'rdm-official-v7700';
+const CACHE = 'rdm-official-v7800';
 const CORE = [
   './',
   'index.html',
@@ -48,6 +48,22 @@ self.addEventListener('fetch', e => {
           return res;
         })
         .catch(() => caches.match('./').then(r => r || caches.match('index.html')))
+    );
+    return;
+  }
+
+  // Always network-first for code, styles, manifests, and service worker so updates show immediately
+  if (/\.(js|mjs|css|html|webmanifest)$/i.test(url.pathname)) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-cache' })
+        .then(res => {
+          if (res && res.status === 200 && res.type === 'basic') {
+            const copy = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
     );
     return;
   }

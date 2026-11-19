@@ -132,6 +132,114 @@ function mergeSeedPlayers(remoteDocs, profileDocs, uid) {
   return list.filter(p => p.active !== false);
 }
 
+let cachedPlayerDocs = [];
+let cachedProfileDocs = [];
+let realtimeUnsubs = [];
+
+function applyPlayersAndProfiles() {
+  const uid = getAuth()?.currentUser?.uid || '';
+  state.players = mergeSeedPlayers(cachedPlayerDocs, cachedProfileDocs, uid);
+}
+
+export function subscribeClubDataRealtime(onUpdate) {
+  const db = getDB();
+  if (!db) return () => {};
+
+  realtimeUnsubs.forEach(fn => { try { fn(); } catch (_) {} });
+  realtimeUnsubs = [];
+
+  let timer = null;
+  const trigger = () => {
+    if (typeof onUpdate !== 'function') return;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      state.ready = true;
+      onUpdate();
+    }, 50);
+  };
+
+  const watch = (col, handler) => {
+    try {
+      const unsub = db.collection(col).onSnapshot(
+        snap => {
+          handler(snap.docs.map(mapDoc));
+          trigger();
+        },
+        () => {}
+      );
+      realtimeUnsubs.push(unsub);
+    } catch (_) {}
+  };
+
+  watch('TeamPlayers', docs => {
+    cachedPlayerDocs = docs;
+    applyPlayersAndProfiles();
+  });
+  watch('PlayerProfiles', docs => {
+    cachedProfileDocs = docs;
+    applyPlayersAndProfiles();
+  });
+  watch('Matches', docs => {
+    state.matches = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('News', docs => {
+    state.news = docs.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Honours', docs => {
+    state.honours = docs.length ? docs.sort((a, b) => (a.order || 999) - (b.order || 999)) : SEED_HONOURS.map(h => ({ ...h }));
+  });
+  watch('Gallery', docs => {
+    state.gallery = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Socials', docs => {
+    state.socials = docs.length ? docs.sort((a, b) => (a.order || 999) - (b.order || 999)) : DEFAULT_SOCIALS.map(s => ({ ...s }));
+  });
+  watch('PlayerStats', docs => { state.stats = docs; });
+  watch('Achievements', docs => {
+    state.achievements = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Availability', docs => { state.availability = docs; });
+  watch('PlayingXI', docs => {
+    state.lineups = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('TeamRecords', docs => {
+    state.records = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Tournaments', docs => {
+    state.tournaments = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Opponents', docs => {
+    state.opponents = docs.sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
+  });
+  watch('Updates', docs => {
+    state.updates = docs
+      .filter(d => d._docId !== '_news_updates_swap_v1')
+      .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdMs || 0) - (a.createdMs || 0));
+  });
+
+  try {
+    const unsubBrand = db.collection('BrandSettings').doc('main').onSnapshot(
+      snap => {
+        if (snap.exists) {
+          const bData = snap.data() || {};
+          if (bData.logo && !isLegacyBrokenImage(bData.logo)) {
+            state.brandLogo = bData.logo;
+            trigger();
+          }
+        }
+      },
+      () => {}
+    );
+    realtimeUnsubs.push(unsubBrand);
+  } catch (_) {}
+
+  return () => {
+    clearTimeout(timer);
+    realtimeUnsubs.forEach(fn => { try { fn(); } catch (_) {} });
+    realtimeUnsubs = [];
+  };
+}
+
 export async function loadClubData() {
   const db = getDB();
   if (!db) {
@@ -166,8 +274,9 @@ export async function loadClubData() {
       db.collection('Updates').get()
     ]);
 
-    const uid = getAuth()?.currentUser?.uid || '';
-    state.players = mergeSeedPlayers(ps.docs.map(mapDoc), profiles.docs.map(mapDoc), uid);
+    cachedPlayerDocs = ps.docs.map(mapDoc);
+    cachedProfileDocs = profiles.docs.map(mapDoc);
+    applyPlayersAndProfiles();
     state.matches = ms.docs.map(mapDoc).sort((a, b) => (b.createdMs || 0) - (a.createdMs || 0));
     state.news = ns.docs.map(mapDoc).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdMs || 0) - (a.createdMs || 0));
     state.honours = !hs.empty
@@ -355,12 +464,24 @@ export function subscribeAuthChanges(onChange) {
 
 /* ==================== WRITE OPERATIONS (STRICT FIRESTORE RULES) ==================== */
 
-export async function saveOwnPlayerProfile(updates) {
-  const db = getDB();
-  const player = getVerifiedPlayer();
-  if (!db || !player || !state.user) throw new Error('PLAYER_AUTH_REQUIRED');
+export function canEditPlayerPortal(playerId) {
+  if (!playerId || !state.user) return false;
+  if (isVerifiedAdmin()) return true;
+  return Boolean(state.account && state.account.active === true && state.role === 'player' && state.playerId === playerId);
+}
 
-  const uid = state.user.uid;
+export async function savePlayerPortalProfile(targetPlayerId, updates) {
+  const db = getDB();
+  if (!db || !state.user) throw new Error('AUTH_REQUIRED');
+  if (!canEditPlayerPortal(targetPlayerId)) throw new Error('NOT_ALLOWED');
+
+  const player = state.players.find(p => p.id === targetPlayerId) || SEED_PLAYERS.find(p => p.id === targetPlayerId);
+  if (!player) throw new Error('PLAYER_NOT_FOUND');
+
+  const docId = isVerifiedAdmin()
+    ? (player._profileUid || `profile_${targetPlayerId}`)
+    : state.user.uid;
+
   const cleanSocials = Array.isArray(updates.socials)
     ? updates.socials.slice(0, 3).map(s => ({
         name: String(s?.name || '').trim() || 'Social',
@@ -369,7 +490,7 @@ export async function saveOwnPlayerProfile(updates) {
     : (player.socials || []).slice(0, 3);
 
   const payload = {
-    playerId: player.id,
+    playerId: targetPlayerId,
     jersey: String(updates.jersey ?? player.jersey ?? '').trim(),
     nick: String(updates.nick ?? player.nick ?? '').trim(),
     bio: String(updates.bio ?? player.bio ?? '').trim(),
@@ -381,8 +502,14 @@ export async function saveOwnPlayerProfile(updates) {
     payload.image = String(updates.image || '');
   }
 
-  await db.collection('PlayerProfiles').doc(uid).set(payload, { merge: true });
+  await db.collection('PlayerProfiles').doc(docId).set(payload, { merge: true });
   await loadClubData();
+}
+
+export async function saveOwnPlayerProfile(updates) {
+  const player = getVerifiedPlayer();
+  if (!player) throw new Error('PLAYER_AUTH_REQUIRED');
+  return savePlayerPortalProfile(player.id, updates);
 }
 
 export async function savePlayerAvailability(playerId, status) {

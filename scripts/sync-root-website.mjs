@@ -19,8 +19,9 @@ let entryJs = '';
 let entryCss = '';
 
 for (const file of assetFiles) {
-  if (!/\.(js|css)$/i.test(file)) continue;
-  fs.copyFileSync(path.join(distAssetsDir, file), path.join(webAppDir, file));
+  const srcFile = path.join(distAssetsDir, file);
+  if (!fs.statSync(srcFile).isFile()) continue;
+  fs.copyFileSync(srcFile, path.join(webAppDir, file));
   if (/^index-.*\.js$/i.test(file)) entryJs = file;
   if (/^index-.*\.css$/i.test(file)) entryCss = file;
 }
@@ -116,9 +117,11 @@ const rootHtml = `<!doctype html>
   <script src="firebase-config.js"></script>
   <script type="module" crossorigin src="./web-app/${entryJs}"></script>
   <script>
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname) && !location.hostname.endsWith('.run.app')) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js').catch(function () {});
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+          .then(function (reg) { if (reg && reg.update) reg.update().catch(function () {}); })
+          .catch(function () {});
       });
     }
   </script>

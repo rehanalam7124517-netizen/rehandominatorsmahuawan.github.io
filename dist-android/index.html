@@ -24,13 +24,37 @@
           meta.content = t === 'night' ? '#071224' : (t === 'daylight' ? '#FFFFFF' : (t === 'turf' ? '#F4F9F6' : '#F2F7FD'));
         }
       } catch (e) {}
+      try {
+        var host = location.hostname || '';
+        if ((host === 'localhost' || host === '127.0.0.1' || host.endsWith('.run.app')) && 'serviceWorker' in navigator) {
+          var hadController = !!navigator.serviceWorker.controller;
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            if (!regs || !regs.length) return;
+            Promise.all(regs.map(function(r) { return r.unregister(); })).then(function() {
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                }).finally(function() {
+                  if (hadController && !sessionStorage.getItem('rdm-sw-cleaned')) {
+                    sessionStorage.setItem('rdm-sw-cleaned', '1');
+                    location.reload();
+                  }
+                });
+              } else if (hadController && !sessionStorage.getItem('rdm-sw-cleaned')) {
+                sessionStorage.setItem('rdm-sw-cleaned', '1');
+                location.reload();
+              }
+            });
+          }).catch(function() {});
+        }
+      } catch (e) {}
     })();
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-DvnyX8jz.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CfRIpNO_.css">
+  <script type="module" crossorigin src="./assets/index-BjwRWBTw.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-F7t9ZsbJ.css">
 </head>
 <body>
   <div id="rdmAppRoot" class="appShell">

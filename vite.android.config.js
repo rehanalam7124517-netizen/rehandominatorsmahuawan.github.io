@@ -71,6 +71,24 @@ function copyAndroidPublicAssetsPlugin() {
   };
 }
 
+function rdmAndroidPortalStubPlugin() {
+  const virtualId = 'virtual:rdm-portal';
+  const resolvedId = '\0' + virtualId;
+  return {
+    name: 'rdm-android-portal-stub',
+    resolveId(id) {
+      if (id === virtualId) return resolvedId;
+    },
+    load(id) {
+      if (id !== resolvedId) return null;
+      return `
+        export const PORTAL_ENABLED = false;
+        export async function resolvePortalKey() { return null; }
+      `;
+    }
+  };
+}
+
 export default defineConfig({
   root: path.resolve(process.cwd(), 'android-web'),
   base: './',
@@ -83,5 +101,5 @@ export default defineConfig({
     outDir: path.resolve(process.cwd(), 'dist-android'),
     emptyOutDir: true
   },
-  plugins: [copyAndroidPublicAssetsPlugin()]
+  plugins: [rdmAndroidPortalStubPlugin(), copyAndroidPublicAssetsPlugin()]
 });
