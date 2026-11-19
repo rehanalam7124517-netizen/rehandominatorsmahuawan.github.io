@@ -9,6 +9,7 @@
   "orientation": "any",
   "background_color": "#090A0D",
   "theme_color": "#C81E2B",
+  "prefer_related_applications": false,
   "categories": [
     "sports"
   ],

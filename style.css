@@ -2975,6 +2975,12 @@ html[data-rdm-theme="dark"] .squadRoleBtn:hover {
   color: var(--text-secondary);
 }
 
+.installGuideActions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 .matchPosterCard {
   text-align: center;
   padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 36px);
@@ -3658,7 +3664,7 @@ footer {
   margin-top: auto;
   flex-shrink: 0;
   width: 100%;
-  background: var(--surface);
+  background: var(--bg);
   border-top: 1px solid var(--border);
   padding: 28px 20px calc(32px + env(safe-area-inset-bottom, 0px));
   display: grid;

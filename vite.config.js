@@ -56,13 +56,20 @@ function copyStaticFilesPlugin() {
       const distIndex = path.join(outDir, 'index.html');
       if (fs.existsSync(distIndex)) {
         let html = fs.readFileSync(distIndex, 'utf8');
+        html = html
+          .replace(/(?:\.?\/)?assets\/site-[^"']+\.webmanifest(?:\?[^"']*)?/g, 'site.webmanifest?v=7602')
+          .replace(/(?:\.?\/)?assets\/pwa-192x192-[^"']+\.png(?:\?[^"']*)?/g, 'pwa-192x192.png?v=7400')
+          .replace(/(?:\.?\/)?assets\/apple-touch-icon-[^"']+\.png(?:\?[^"']*)?/g, 'apple-touch-icon.png?v=7400')
+          .replace(/(?:\.?\/)?assets\/rdm-logo-[^"']+\.png(?:\?[^"']*)?/g, 'assets/rdm-logo.png?v=7400')
+          .replace(/(?:\.?\/)?assets\/hero_cricket_stadium_[^"']+\.jpg(?:\?[^"']*)?/g, 'src/assets/images/hero_cricket_stadium_1794890926411.jpg')
+          .replace(/(?:\.?\/)?assets\/club_heritage_banner_[^"']+\.jpg(?:\?[^"']*)?/g, 'src/assets/images/club_heritage_banner_1794890926814.jpg');
         if (!html.includes('style.css')) {
           html = html.replace(
             '</head>',
-            '  <link rel="stylesheet" href="style.css?v=7.6.1">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.1">\n</head>'
+            '  <link rel="stylesheet" href="style.css?v=7.6.2">\n  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.2">\n</head>'
           );
-          fs.writeFileSync(distIndex, html, 'utf8');
         }
+        fs.writeFileSync(distIndex, html, 'utf8');
       }
     }
   };
