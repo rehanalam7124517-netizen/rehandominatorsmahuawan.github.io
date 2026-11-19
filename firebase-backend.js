@@ -48,12 +48,23 @@ function rdmApplyOverridesToData(){
   }
 }
 
+const RDM_SNAP_KEY='RDM_REMOTE_SNAP_V1';
+window.rdmOfflineSnap=function(sec,val){
+  try{
+    const all=JSON.parse(localStorage.getItem(RDM_SNAP_KEY)||'{}')||{};
+    if(val===undefined)return all[sec]||null;
+    all[sec]=val;
+    localStorage.setItem(RDM_SNAP_KEY,JSON.stringify(all));
+  }catch{}
+  return null;
+};
+rdmApplyOverridesToData();
 async function rdmLoadAll(){if(rdmLoading)return;rdmLoading=true;try{const[ps,ms,ns,hs,gs,ss,profiles]=await Promise.all([rdmDB.collection(RCOL.players).get(),rdmDB.collection(RCOL.matches).get(),rdmDB.collection(RCOL.news).get(),rdmDB.collection(RCOL.honours).get(),rdmDB.collection(RCOL.gallery).get(),rdmDB.collection(RCOL.socials).get(),rdmDB.collection('PlayerProfiles').get()]);
   if(!ps.empty)D.players=ps.docs.map(rdmDocData).sort((a,b)=>(a.order||999)-(b.order||999)).map(p=>({id:p.id,name:p.name,role:p.role,detail:p.detail,image:rdmStaticPlayerImage(p.image)?'':(p.image||''),jersey:p.jersey||'',nick:'',bio:'',socials:[],_docId:p._docId}));
   if(typeof rdmRepairRoster2026==='function')rdmRepairRoster2026();
   D.matches=ms.docs.map(rdmDocData).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));D.news=ns.docs.map(rdmDocData).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));if(!hs.empty)D.honours=hs.docs.map(rdmDocData).sort((a,b)=>(a.order||999)-(b.order||999));D.gallery=gs.docs.map(rdmDocData).sort((a,b)=>(b.createdMs||0)-(a.createdMs||0));if(!ss.empty)D.socials=ss.docs.map(rdmDocData).sort((a,b)=>(a.order||999)-(b.order||999));
-  [...profiles.docs].sort((a,b)=>{const uid=rdmAuth.currentUser?.uid||'';return (a.id===uid?1:0)-(b.id===uid?1:0)}).forEach(d=>{const pr=d.data(),p=D.players.find(x=>x.id===pr.playerId);if(p){['jersey','nick','bio'].forEach(k=>{if(pr[k]!==undefined&&pr[k]!==null&&pr[k]!=='')p[k]=pr[k]});if('image' in pr&&pr.image!==undefined&&pr.image!==null)p.image=rdmStaticPlayerImage(pr.image)?'':pr.image;if(Array.isArray(pr.socials))p.socials=pr.socials;p._profileUid=d.id;}});D.players.forEach(p=>{const d=(typeof playerDefaults!=='undefined'&&playerDefaults[p.id])||null;if(d){if(!p.nick)p.nick=d.nick;if(!p.bio)p.bio=d.bio;}});if(typeof rdmRepairRoster2026==='function')rdmRepairRoster2026();rdmApplyOverridesToData();rdmRemoteReady=true;rdmRefresh();
-}catch(e){console.error(e);rdmApplyOverridesToData();rdmRefresh();}finally{rdmLoading=false}}
+  [...profiles.docs].sort((a,b)=>{const uid=rdmAuth.currentUser?.uid||'';return (a.id===uid?1:0)-(b.id===uid?1:0)}).forEach(d=>{const pr=d.data(),p=D.players.find(x=>x.id===pr.playerId);if(p){['jersey','nick','bio'].forEach(k=>{if(pr[k]!==undefined&&pr[k]!==null&&pr[k]!=='')p[k]=pr[k]});if('image' in pr&&pr.image!==undefined&&pr.image!==null)p.image=rdmStaticPlayerImage(pr.image)?'':pr.image;if(Array.isArray(pr.socials))p.socials=pr.socials;p._profileUid=d.id;}});D.players.forEach(p=>{const d=(typeof playerDefaults!=='undefined'&&playerDefaults[p.id])||null;if(d){if(!p.nick)p.nick=d.nick;if(!p.bio)p.bio=d.bio;}});if(typeof rdmRepairRoster2026==='function')rdmRepairRoster2026();rdmApplyOverridesToData();if(typeof save==='function')save();rdmRemoteReady=true;rdmRefresh();
+}catch(e){console.warn('Offline/cache mode active:',e?.code||e);rdmApplyOverridesToData();rdmRefresh();}finally{rdmLoading=false}}
 async function rdmSyncRoster2026(){if(!rdmAdmin()||typeof rdmRoster2026==='undefined')return;const b=rdmDB.batch();Object.values(rdmRoster2026).forEach(c=>{const photoIds=['RDM007','RDM012','RDM015','RDM016','RDM017'];const data={id:c.id,name:c.name,role:c.role,detail:c.detail,jersey:c.jersey||'',order:c.order,active:true,updatedAt:rdmStamp(),...(photoIds.includes(c.id)?{image:c.image}:{})};b.set(rdmDB.collection(RCOL.players).doc(c.id),data,{merge:true})});await b.commit()}
 window.rdmBackendAuthReady=async(user,account)=>{if(account?.role==='admin'){try{await rdmSeedIfNeeded();await rdmSyncRoster2026()}catch(e){console.warn('ROSTER SYNC',e)}}await rdmLoadAll()};rdmLoadAll();document.addEventListener('visibilitychange',()=>{if(!document.hidden)rdmLoadAll()});
 

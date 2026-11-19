@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RDM" id="rdmAppleTitle">
-  <link rel="manifest" href="site.webmanifest?v=7602" id="rdmManifestLink">
+  <link rel="manifest" href="site.webmanifest?v=7700" id="rdmManifestLink">
   <script>(function(){try{
     var ADMIN='0AqlZ35wF8lcXYiAkgz04KjzGeiSfnHs';
     var PLAYERS={
@@ -55,7 +55,7 @@
     var link=document.getElementById('rdmManifestLink');
     if(link){
       if(navigator.serviceWorker&&navigator.serviceWorker.controller){
-        link.href=new URL('rdm-portal.webmanifest?key='+encodeURIComponent(key)+'&v=7602',location.href).href;
+        link.href=new URL('rdm-portal.webmanifest?key='+encodeURIComponent(key)+'&v=7700',location.href).href;
       }else{
         var startUrl=location.origin+location.pathname+'?key='+encodeURIComponent(key);
         var scopeUrl=new URL('./',location.href).href;
@@ -87,9 +87,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=7.6.2">
-  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.6.2">
-  <script>(function(){try{if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true)document.documentElement.classList.add('rdm-standalone')}catch(e){}})();</script>
+  <link rel="stylesheet" href="style.css?v=7.7.0">
+  <link rel="stylesheet" href="rdm-v6890-fix.css?v=7.7.0">
+  <script>(function(){try{
+    var st=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    var previewApp=false;
+    try{previewApp=/[?&]app=1(?:&|$)/.test(location.search)||sessionStorage.getItem('rdm-app-mode')==='1';}catch(e){}
+    if(st)document.documentElement.classList.add('rdm-standalone');
+    if(st||previewApp)document.documentElement.classList.add('rdm-app-mode');
+  }catch(e){}})();</script>
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="Rehan Dominators Mahuawan (RDM) | Official Cricket Team">
@@ -127,12 +133,23 @@
   <script>(function(){try{var m=localStorage.getItem('rdm-theme')||'auto';if(!/^(auto|light|dark)$/.test(m))m='auto';var d=m==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m;document.documentElement.dataset.rdmThemeMode=m;document.documentElement.dataset.rdmTheme=d;}catch(e){document.documentElement.dataset.rdmThemeMode='auto';document.documentElement.dataset.rdmTheme='light';}})();</script>
 </head>
 <body>
+  <div class="rdmAppSplash" id="rdmAppSplash" aria-hidden="true">
+    <img src="assets/rdm-logo.png?v=7400" alt="">
+    <b>RDM OFFICIAL APP</b>
+    <span>Offline Vault Ready</span>
+  </div>
+
   <header class="top">
     <a class="brand" href="#home" onclick="if(typeof go==='function'){go(window.__rdmUrlKeyRole==='admin'?'admin':(window.__rdmUrlKeyRole==='player'?'profile':'home'));return false}">
       <img src="assets/rdm-logo.png?v=7400" alt="Rehan Dominators Mahuawan Logo" referrerPolicy="no-referrer">
-      <span class="brandTitle">Rehan Dominators Mahuawan</span>
+      <span class="brandTitleWrap">
+        <span class="brandTitle">Rehan Dominators Mahuawan</span>
+        <span class="rdmAppScreenTitle" id="rdmAppScreenTitle">Home</span>
+      </span>
     </a>
     <div class="headActions">
+      <button type="button" class="tinyBtn rdmAppHeaderBtn" id="rdmAppWebExitBtn" hidden>Web View</button>
+      <button type="button" class="tinyBtn rdmAppHeaderBtn" id="rdmAppShareBtn" aria-label="Share App">Share</button>
       <div class="themeControl" id="themeControl">
         <button type="button" class="themeToggle" id="themeToggle" aria-label="Theme" aria-expanded="false">Theme</button>
         <div class="themeMenu" id="themeMenu" hidden>
@@ -453,23 +470,60 @@
     <section class="page" id="download">
       <div class="sectionHead">
         <div>
-          <span>Mobile Experience</span>
-          <h2>Download Application</h2>
-          <p>Install RDM on your home screen</p>
+          <span>App Store Hub</span>
+          <h2>RDM Official App</h2>
+          <p>Install &amp; share directly with players — no Play Store required</p>
         </div>
       </div>
-      <div class="downloadAppCard">
-        <img src="assets/rdm-logo.png?v=7400" alt="RDM Application Logo" referrerPolicy="no-referrer">
-        <div class="downloadAppCopy">
-          <span class="downloadBadge">Official RDM App</span>
-          <h2>Rehan Dominators Mahuawan</h2>
-          <p>Instant mobile access to the 17-player squad, live match fixtures, records, tournament standings, news, and club updates.</p>
-          <p class="downloadMeta">Official Club App · Mobile Ready · Progressive Web App</p>
-          <div class="downloadBtnRow">
-            <button class="primary downloadAppBtn" id="downloadApplicationBtn" data-rdm-install-btn type="button">Download App</button>
-            <button class="secondary" id="enableRdmNotifications" type="button">Allow Notifications</button>
+      <div class="playStoreShell">
+        <div class="playStoreHeader">
+          <img class="playStoreIcon" src="assets/rdm-logo.png?v=7400" alt="RDM Application Logo" referrerPolicy="no-referrer">
+          <div class="playStoreMeta">
+            <span class="downloadBadge">Official Club App · Direct Share</span>
+            <h2>Rehan Dominators</h2>
+            <p class="playStorePub">Rehan Dominators Mahuawan · Mahuawan, Gopalganj</p>
+            <div class="playStoreTags">
+              <span>No Play Store Needed</span>
+              <span>Offline Vault</span>
+              <span>v7.7.0</span>
+            </div>
           </div>
-          <small id="downloadApplicationHelp">Tap to install the RDM application on your device</small>
+        </div>
+
+        <div class="playStoreStats" aria-label="App details">
+          <div><strong>4.9 ★</strong><span>Club Rating</span></div>
+          <div><strong>17</strong><span>Squad Profiles</span></div>
+          <div><strong>Offline</strong><span>Zero-Wait Boot</span></div>
+        </div>
+
+        <div class="playStoreActions">
+          <button class="primary playStoreInstallBtn" id="downloadApplicationBtn" data-rdm-install-btn type="button">Install App</button>
+          <button class="secondary" id="rdmEnterAppModeBtn" type="button">Open App Mode</button>
+          <button class="secondary" id="rdmShareAppBtn" type="button">Share to Players</button>
+          <button class="tinyBtn" id="enableRdmNotifications" type="button">Notifications</button>
+        </div>
+        <small class="playStoreHelp" id="downloadApplicationHelp">Direct shareable app · Works offline after install</small>
+
+        <div class="playStoreAbout">
+          <h3>App Highlights</h3>
+          <div class="playStoreFeatures">
+            <article>
+              <b>Native App Experience</b>
+              <p>Installed app hides website menus &amp; footer and gives crisp bottom tab navigation like a Play Store app.</p>
+            </article>
+            <article>
+              <b>Works Without Internet</b>
+              <p>Offline-first storage caches the entire squad, matches, stats, trophies, and updates directly on your phone.</p>
+            </article>
+            <article>
+              <b>Easy Player Sharing</b>
+              <p>Tap Share to send directly to any teammate via WhatsApp — installs on Android, iPhone, and Desktop.</p>
+            </article>
+            <article>
+              <b>Dedicated Portals</b>
+              <p>Public App for fans, Player App for personal profile &amp; availability, and Admin Studio App for management.</p>
+            </article>
+          </div>
         </div>
       </div>
     </section>
@@ -501,6 +555,21 @@
     <b>Rehan Dominators Mahuawan</b>
     <span>One Team • One Dream • One Domination · Mahuawan, Gopalganj, Bihar</span>
   </footer>
+
+  <nav class="rdmBottomNav" id="rdmBottomNav" aria-label="App Navigation"></nav>
+
+  <div class="rdmAppMoreSheet" id="rdmAppMoreSheet" hidden>
+    <div class="rdmMorePanel" role="dialog" aria-modal="true" aria-label="More app sections">
+      <div class="rdmMoreHead">
+        <div>
+          <span class="sectionKicker">RDM App Menu</span>
+          <h3>All Club Sections</h3>
+        </div>
+        <button type="button" class="close" id="rdmMoreClose" aria-label="Close">×</button>
+      </div>
+      <div class="rdmMoreGrid" id="rdmMoreGrid"></div>
+    </div>
+  </div>
 
   <div class="modal" id="editor">
     <form class="dialog" id="editForm">
@@ -535,17 +604,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=7.6.2"></script>
-  <script src="app.js?v=7.6.2"></script>
-  <script src="firebase-login.js?v=7.6.2"></script>
-  <script src="access-links.js?v=7.6.2"></script>
-  <script src="firebase-backend.js?v=7.6.2"></script>
-  <script src="enhancements.js?v=7.6.2"></script>
-  <script src="admin-player-manager.js?v=7.6.2"></script>
-  <script src="v6.js?v=7.6.2"></script>
-  <script src="gallery-v686.js?v=7.6.2"></script>
-  <script src="updates.js?v=7.6.2"></script>
-  <script src="forms-v6821.js?v=7.6.2"></script>
+  <script src="firebase-config.js?v=7.7.0"></script>
+  <script src="app.js?v=7.7.0"></script>
+  <script src="firebase-login.js?v=7.7.0"></script>
+  <script src="access-links.js?v=7.7.0"></script>
+  <script src="firebase-backend.js?v=7.7.0"></script>
+  <script src="enhancements.js?v=7.7.0"></script>
+  <script src="admin-player-manager.js?v=7.7.0"></script>
+  <script src="v6.js?v=7.7.0"></script>
+  <script src="gallery-v686.js?v=7.7.0"></script>
+  <script src="updates.js?v=7.7.0"></script>
+  <script src="forms-v6821.js?v=7.7.0"></script>
 
   <script>(function(){
     var control=document.getElementById('themeControl'),toggle=document.getElementById('themeToggle'),menu=document.getElementById('themeMenu');
@@ -572,10 +641,10 @@
     if(mq.addEventListener)mq.addEventListener('change',onSystem);else if(mq.addListener)mq.addListener(onSystem);
   })();</script>
 
-  <script src="rdm-v6900.js?v=7.6.2"></script>
-  <script src="rdm-v6901.js?v=7.6.2"></script>
-  <script src="rdm-v6902.js?v=7.6.2"></script>
-  <script src="rdm-global-mini.js?v=7.6.2"></script>
-  <script src="rdm-pwa.js?v=7.6.2"></script>
+  <script src="rdm-v6900.js?v=7.7.0"></script>
+  <script src="rdm-v6901.js?v=7.7.0"></script>
+  <script src="rdm-v6902.js?v=7.7.0"></script>
+  <script src="rdm-global-mini.js?v=7.7.0"></script>
+  <script src="rdm-pwa.js?v=7.7.0"></script>
 </body>
 </html>

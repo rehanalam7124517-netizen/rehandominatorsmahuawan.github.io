@@ -2,11 +2,9 @@
 const V6COL={records:'TeamRecords',tournaments:'Tournaments',opponents:'Opponents'};
 let V6={records:[],tournaments:[],opponents:[]},v6Season='ALL',v6RecordType='PLAYER';
 const v6doc=d=>({...d.data(),_docId:d.id});
-async function v6load(){try{const [r,t,o]=await Promise.all(Object.values(V6COL).map(c=>rdmDB.collection(c).get()));V6.records=r.docs.map(v6doc);V6.tournaments=t.docs.map(v6doc);V6.opponents=o.docs.map(v6doc);}catch(e){console.warn('V6 load',e)}
-  const ov=window.rdmGetOverrides?.();
-  if(ov?.v6){
-    ['records','tournaments','opponents'].forEach(k=>{if(Array.isArray(ov.v6[k]))V6[k]=ov.v6[k];});
-  }
+function v6HydrateLocal(){const snap=window.rdmOfflineSnap?.('v6');const ov=window.rdmGetOverrides?.();['records','tournaments','opponents'].forEach(k=>{if(Array.isArray(ov?.v6?.[k]))V6[k]=ov.v6[k];else if(Array.isArray(snap?.[k]))V6[k]=snap[k];});}
+v6HydrateLocal();
+async function v6load(){v6HydrateLocal();v6render();try{const [r,t,o]=await Promise.all(Object.values(V6COL).map(c=>rdmDB.collection(c).get()));V6.records=r.docs.map(v6doc);V6.tournaments=t.docs.map(v6doc);V6.opponents=o.docs.map(v6doc);window.rdmOfflineSnap?.('v6',{records:V6.records,tournaments:V6.tournaments,opponents:V6.opponents});const ov=window.rdmGetOverrides?.();if(ov?.v6){['records','tournaments','opponents'].forEach(k=>{if(Array.isArray(ov.v6[k]))V6[k]=ov.v6[k];});}}catch(e){console.warn('Offline V6 cache active',e?.code||e)}
   v6render();
 }
 function v6SaveOverride(key,arr){window.rdmSetOverrides?.(o=>{o.v6=o.v6||{};o.v6[key]=arr});}

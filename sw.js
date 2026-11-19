@@ -1,26 +1,26 @@
-const CACHE = 'rdm-v7602';
+const CACHE = 'rdm-v7700';
 const CORE = [
   './',
   'index.html',
-  'style.css?v=7.6.2',
-  'rdm-v6890-fix.css?v=7.6.2',
-  'firebase-config.js?v=7.6.2',
-  'app.js?v=7.6.2',
-  'firebase-login.js?v=7.6.2',
-  'access-links.js?v=7.6.2',
-  'firebase-backend.js?v=7.6.2',
-  'enhancements.js?v=7.6.2',
-  'admin-player-manager.js?v=7.6.2',
-  'v6.js?v=7.6.2',
-  'gallery-v686.js?v=7.6.2',
-  'updates.js?v=7.6.2',
-  'forms-v6821.js?v=7.6.2',
-  'rdm-v6900.js?v=7.6.2',
-  'rdm-v6901.js?v=7.6.2',
-  'rdm-v6902.js?v=7.6.2',
-  'rdm-global-mini.js?v=7.6.2',
-  'rdm-pwa.js?v=7.6.2',
-  'site.webmanifest?v=7602',
+  'style.css?v=7.7.0',
+  'rdm-v6890-fix.css?v=7.7.0',
+  'firebase-config.js?v=7.7.0',
+  'app.js?v=7.7.0',
+  'firebase-login.js?v=7.7.0',
+  'access-links.js?v=7.7.0',
+  'firebase-backend.js?v=7.7.0',
+  'enhancements.js?v=7.7.0',
+  'admin-player-manager.js?v=7.7.0',
+  'v6.js?v=7.7.0',
+  'gallery-v686.js?v=7.7.0',
+  'updates.js?v=7.7.0',
+  'forms-v6821.js?v=7.7.0',
+  'rdm-v6900.js?v=7.7.0',
+  'rdm-v6901.js?v=7.7.0',
+  'rdm-v6902.js?v=7.7.0',
+  'rdm-global-mini.js?v=7.7.0',
+  'rdm-pwa.js?v=7.7.0',
+  'site.webmanifest?v=7700',
   'assets/rdm-logo.png?v=7400',
   'assets/trophy-2024.png',
   'assets/trophy-2025.png',
@@ -109,6 +109,19 @@ self.addEventListener('activate', e => {
   );
 });
 
+async function refreshInBackground(request, cacheKey) {
+  try {
+    const res = await fetch(request);
+    if (res && res.status === 200 && res.type === 'basic') {
+      const c = await caches.open(CACHE);
+      await c.put(cacheKey || request, res.clone());
+    }
+    return res;
+  } catch {
+    return null;
+  }
+}
+
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
@@ -119,22 +132,44 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  e.respondWith(
-    fetch(e.request)
-      .then(r => {
-        if (r && r.status === 200 && r.type === 'basic') {
-          const clone = r.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone)).catch(() => {});
+  /* Offline-first Cache-First + Stale-While-Revalidate for navigations & app shell:
+     opens in 0ms even without internet, quietly updates in background when online. */
+  if (e.request.mode === 'navigate') {
+    e.respondWith((async () => {
+      const shell = (await caches.match('./')) || (await caches.match('index.html'));
+      if (shell) {
+        e.waitUntil(refreshInBackground(new Request('./'), './'));
+        return shell;
+      }
+      try {
+        const net = await fetch(e.request);
+        if (net && net.status === 200) {
+          const c = await caches.open(CACHE);
+          c.put('./', net.clone()).catch(() => {});
         }
-        return r;
-      })
-      .catch(async () => {
-        const cached = await caches.match(e.request);
-        if (cached) return cached;
-        if (e.request.mode === 'navigate') {
-          return (await caches.match('./')) || (await caches.match('index.html'));
-        }
-        return Response.error();
-      })
-  );
+        return net;
+      } catch {
+        return (await caches.match('index.html')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  e.respondWith((async () => {
+    const cached = await caches.match(e.request);
+    if (cached) {
+      e.waitUntil(refreshInBackground(e.request));
+      return cached;
+    }
+    try {
+      const net = await fetch(e.request);
+      if (net && net.status === 200 && net.type === 'basic') {
+        const c = await caches.open(CACHE);
+        c.put(e.request, net.clone()).catch(() => {});
+      }
+      return net;
+    } catch {
+      return Response.error();
+    }
+  })());
 });
